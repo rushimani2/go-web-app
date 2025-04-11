@@ -1,5 +1,3 @@
-// Test the main function
-
 package main
 
 import (
@@ -8,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestMain(t *testing.T) {
+func TestHomePage(t *testing.T) {
 	req, err := http.NewRequest("GET", "/home", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -24,7 +22,6 @@ func TestMain(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	// Just verify the code not html content
 	expected := "text/html; charset=utf-8"
 	if contentType := rr.Header().Get("Content-Type"); contentType != expected {
 		t.Errorf("handler returned unexpected content type: got %v want %v",
