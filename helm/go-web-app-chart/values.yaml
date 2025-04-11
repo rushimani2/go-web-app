@@ -8,7 +8,7 @@ image:
   repository: rushibindu/go-web-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "10548128366"
+  tag: "14410417139"
 
 ingress:
   enabled: false
