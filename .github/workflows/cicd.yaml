@@ -19,10 +19,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Clear Go cache (if any)
+      run: go clean -modcache
+
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.22.2'  # Fixed to a valid Go version
+        go-version: '1.22.2'  # Ensure Go version is 1.22.2
 
     - name: Build
       run: go build -o go-web-app
@@ -36,6 +39,11 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Set up Go for linting
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22.2'  # Ensure Go version for linting is also 1.22.2
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6.0.1
