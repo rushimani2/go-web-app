@@ -34,9 +34,17 @@ func ipPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Your public IP address is: %s", ip)
 }
 
+// Handler to render a basic home page
+func homePage(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, "<h1>Welcome to the Home Page</h1>")
+}
+
 func main() {
 	http.HandleFunc("/", ipPage)
-	log.Println("Server is running on http://localhost:8080")
+	http.HandleFunc("/home", homePage)
+
+	log.Println("Server is running at http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
