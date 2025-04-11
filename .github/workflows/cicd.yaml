@@ -1,6 +1,5 @@
 name: CI/CD
 
-# Exclude the workflow to run on changes to the helm chart
 on:
   push:
     branches:
@@ -11,7 +10,6 @@ on:
       - 'README.md'
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
@@ -19,13 +17,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Clear Go cache (if any)
-      run: go clean -modcache
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - name: Set up Go 1.23
+      uses: actions/setup-go@v3
       with:
-        go-version: '1.22.2'  # Ensure Go version is 1.22.2
+        go-version: 1.23
 
     - name: Build
       run: go build -o go-web-app
@@ -40,16 +35,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Go for linting
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22.2'  # Ensure Go version for linting is also 1.22.2
-
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6.0.1
       with:
         version: v1.56.2
-        working-directory: ./  # Ensures linting runs on your source code
 
   push:
     runs-on: ubuntu-latest
@@ -69,7 +58,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and Push action
+    - name: Build and Push Docker Image
       uses: docker/build-push-action@v6
       with:
         context: .
@@ -94,7 +83,7 @@ jobs:
 
     - name: Commit and push changes
       run: |
-        git config --global user.email "lingammani2@gmail.com"
+        git config --global user.email "your-email@example.com"
         git config --global user.name "rushimanikantalingam"
         git add helm/go-web-app-chart/values.yaml
         git commit -m "Update tag in Helm chart"
