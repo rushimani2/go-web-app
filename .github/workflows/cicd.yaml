@@ -69,6 +69,8 @@ jobs:
   update-newtag-in-helm-chart:
     runs-on: ubuntu-latest
     needs: push
+    permissions:
+      contents: write  # This ensures GITHUB_TOKEN has write access to the repository
 
     steps:
     - name: Checkout repository
