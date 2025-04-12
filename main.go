@@ -34,7 +34,7 @@ func ipPage(w http.ResponseWriter, r *http.Request) {
 
 // Home page handler
 func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "<h1>Welcome to the Go Web App</h1>")
+	fmt.Fprint(w, "<h1>Welcome to the Go Web App3</h1>")
 }
 
 func main() {
