@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: rushibindu/go-web-app
+  repository: rushi.azurecr.io/go-web-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "14422201140"
+  tag: "14431968432"
 
 ingress:
   enabled: false
