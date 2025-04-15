@@ -74,4 +74,5 @@ jobs:
           git config --global user.name "rushimanikantalingam"
           git add helm/go-web-app-chart/values.yaml
           git commit -m "Update tag and repository in Helm chart"
+          git pull origin main --rebase
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
