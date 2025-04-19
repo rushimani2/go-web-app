@@ -10,9 +10,25 @@ on:
       - 'README.md'
 
 jobs:
-  # Build Job: Builds the Go application
+  # Run Go tests
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+
+      - name: Run Unit Tests
+        run: go test ./...
+
+  # Build Go binary
   build:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,10 +41,10 @@ jobs:
       - name: Build Go application
         run: go build -o go-web-app
 
-  # Docker Image Build and Push Job
+  # Docker Image Build and Push
   push:
     runs-on: ubuntu-latest
-    needs: build  # Ensure this job runs only after the build job completes
+    needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,10 +67,10 @@ jobs:
           push: true
           tags: ${{ secrets.ACR_LOGIN_SERVER }}/go-web-app:${{ github.run_id }}
 
-  # Update Helm Chart with New Tag Job
+  # Update Helm Chart with New Tag
   update-newtag-in-helm-chart:
     runs-on: ubuntu-latest
-    needs: push  # Ensure this job runs only after the push job completes
+    needs: push
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
