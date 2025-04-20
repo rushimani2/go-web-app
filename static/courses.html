@@ -1,7 +1,69 @@
-<DocType html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Unconference - IP Address Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(to right, #2c3e50, #3498db);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
 
-<html>
-    <head>
-        <title>IP address</title>
-    </head>
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 0;
+        }
+
+        .ip-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-top: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌐 Welcome to the Global Unconference</h1>
+    <p>Experience real-time interaction from all over the world. This tool displays the public IP address of this server, representing your presence in the event!</p>
+    
+    <div class="ip-box">
+        Your Public IP: <span id="ip-address">Fetching...</span>
+    </div>
+
+    <footer>© 2025 Global Unconference | Powered by SAS</footer>
+
+    <script>
+        // Replace this with server-rendered IP via Flask or dynamic fetch if needed
+        document.getElementById("ip-address").innerText = "{{ ip_address }}";
+    </script>
+
+</body>
 </html>
