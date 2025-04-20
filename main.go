@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-// Function to get the public IP address
 func getPublicIP() (string, error) {
 	resp, err := http.Get("https://api.ipify.org?format=text")
 	if err != nil {
@@ -19,32 +18,78 @@ func getPublicIP() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return string(ip), nil
 }
 
-// Handler to display public IP address
 func ipPage(w http.ResponseWriter, r *http.Request) {
 	ip, err := getPublicIP()
 	if err != nil {
-		http.Error(w, "Unable to retrieve IP address", http.StatusInternalServerError)
+		http.Error(w, "Unable to get IP", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "Your public IP address is: %s", ip)
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintf(w, `<html><head><title>Public IP</title>
+		<style>
+			body {
+				font-family: 'Arial', sans-serif;
+				background-color: #f0f4f8;
+				color: #333;
+				text-align: center;
+				padding: 50px;
+			}
+			h2 {
+				color: #4CAF50;
+				font-size: 24px;
+				border: 2px solid #4CAF50;
+				padding: 10px 20px;
+				border-radius: 10px;
+				display: inline-block;
+				background-color: #e8f5e9;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>Your public IP address is: <span style="color:#1976D2">%s</span></h2>
+	</body></html>`, ip)
 }
 
-// Home page handler
 func homePage(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, "<h1>Welcome to the Go Web App3</h1>")
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprint(w, `<html><head><title>Hello</title>
+		<style>
+			body {
+				font-family: 'Arial', sans-serif;
+				background-color: #f0f4f8;
+				color: #333;
+				text-align: center;
+				padding: 50px;
+			}
+			h1 {
+				color: #0288D1;
+			}
+			p {
+				font-size: 18px;
+				color: #555;
+			}
+			a {
+				color: #1976D2;
+				text-decoration: none;
+				font-weight: bold;
+			}
+			a:hover {
+				color: #0288D1;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>👋 Hello, World!</h1>
+		<p>Check your public IP at <a href="/ip">/ip</a></p>
+	</body></html>`)
 }
 
 func main() {
 	http.HandleFunc("/ip", ipPage)
-	http.HandleFunc("/home", homePage)
+	http.HandleFunc("/", homePage)
 	fmt.Println("Starting server at :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatalf("server failed to start: %v", err)
-	}
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
