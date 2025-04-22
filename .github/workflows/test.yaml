@@ -40,14 +40,16 @@ jobs:
         curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.50.1/golangci-lint-1.50.1-linux-amd64.tar.gz | tar -xzv
         sudo mv golangci-lint-1.50.1-linux-amd64/golangci-lint /usr/local/bin/
 
-    # Step 5: Run golangci-lint (Static Code Analysis)
+    # Step 5: Run golangci-lint (Static Code Analysis) with JSON output
     - name: Run golangci-lint (Static Code Analysis)
       run: |
-        golangci-lint run --enable=govet,staticcheck --disable=gofmt --out-format=plain
+        golangci-lint run --enable=govet,staticcheck --disable=gofmt --out-format=json
 
     # Step 6: Run Go tests with detailed output
     - name: Run tests
       run: |
         go mod tidy
         go test -v ./integration/api_integration_test.go
+
+    # Step 7: Upload test results as artifacts (optional)
 
