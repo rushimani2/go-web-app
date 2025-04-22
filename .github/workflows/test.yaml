@@ -30,7 +30,7 @@ jobs:
 
       - name: Upload test results as artifacts (Optional)
         if: failure() # Upload results only if some tests fail
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-results
           path: ./test-results  # You can specify a directory to store the results, or use a direct file if you prefer
