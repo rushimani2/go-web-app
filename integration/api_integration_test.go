@@ -7,8 +7,9 @@ import (
 	"testing"
 )
 
-// Registering routes globally to avoid multiple registrations
+// Registering routes globally
 func registerRoutes() {
+	// Registering routes only once for all tests
 	http.HandleFunc("/api/users/1", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"id": 1, "name": "John Doe"}`)) // Mocking a user response
@@ -30,12 +31,21 @@ func registerRoutes() {
 	})
 }
 
+// TestMain will run once before any tests are executed.
+func TestMain(m *testing.M) {
+	// Register all routes before tests start
+	registerRoutes()
+
+	// Run tests
+	exitCode := m.Run()
+
+	// Exit with the appropriate exit code
+	os.Exit(exitCode)
+}
+
 // --- User API Integration Test ---
 func TestUserAPIIntegration(t *testing.T) {
 	t.Run("User API Integration", func(t *testing.T) {
-		// Register routes before testing
-		registerRoutes()
-
 		req := httptest.NewRequest("GET", "/api/users/1", nil)
 		w := httptest.NewRecorder()
 
@@ -54,9 +64,6 @@ func TestUserAPIIntegration(t *testing.T) {
 // --- Database Integration Test ---
 func TestDatabaseConnection(t *testing.T) {
 	t.Run("Database Connection", func(t *testing.T) {
-		// Register routes before testing (if necessary)
-		registerRoutes()
-
 		// Simulate a database connection test (mocked)
 		user := struct {
 			ID int
@@ -73,9 +80,6 @@ func TestDatabaseConnection(t *testing.T) {
 // --- API Endpoint Test ---
 func TestCreateUserAPI(t *testing.T) {
 	t.Run("Create User API", func(t *testing.T) {
-		// Register routes before testing
-		registerRoutes()
-
 		req := httptest.NewRequest("POST", "/api/users", nil)
 		w := httptest.NewRecorder()
 
@@ -94,9 +98,6 @@ func TestCreateUserAPI(t *testing.T) {
 // --- Login Integration Test (End-to-End) ---
 func TestUserLogin(t *testing.T) {
 	t.Run("User Login", func(t *testing.T) {
-		// Register routes before testing
-		registerRoutes()
-
 		req := httptest.NewRequest("POST", "/login", nil)
 		w := httptest.NewRecorder()
 
@@ -115,9 +116,6 @@ func TestUserLogin(t *testing.T) {
 // --- User Workflow Test (End-to-End) ---
 func TestUserRegistrationLoginWorkflow(t *testing.T) {
 	t.Run("User Registration and Login Workflow", func(t *testing.T) {
-		// Register routes before testing
-		registerRoutes()
-
 		// Simulate user registration
 		req := httptest.NewRequest("POST", "/register", nil)
 		w := httptest.NewRecorder()
