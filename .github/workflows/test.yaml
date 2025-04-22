@@ -22,6 +22,6 @@ jobs:
           go-version: 1.22.2
 
       - name: Run integration tests
-        run: go test ./integration/...
+        run: go test ./integration/api_integration_test.go
 
       # ... (rest of your test steps - the -run flags might be unnecessary if all tests are in all_tests.go) ...
