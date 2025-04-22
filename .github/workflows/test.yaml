@@ -1,14 +1,3 @@
-name: CI/CD with Different Test Types
-
-on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'helm/**'
-      - 'k8s/**'
-      - 'README.md'
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -21,28 +10,13 @@ jobs:
         with:
           go-version: 1.22.2
 
-      - name: Run Unit Tests (main_test.go)
+      - name: Run All Tests
         run: go test -v ./
 
-      - name: Run Integration Tests
-        run: go test -v ./integration_test.go/...
-        if: always() # Run even if unit tests fail for demonstration
+      # You can remove the separate "Run Integration Tests" step
+      # if all your tests are in the same directory and you want to run them together.
 
-      # ... (rest of your test steps for other types) ...
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Go 1.22
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.22.2
-
-      - name: Build Go application
-        run: go build -o go-web-app
-
-  # ... (rest of your build, push, and update-helm-chart jobs remain the same) ...
+      # If you later decide to move integration tests to a subdirectory,
+      # you would then use a separate step like:
+      # - name: Run Integration Tests (if in a subdirectory)
+      #   run: go test -v ./integration/...
