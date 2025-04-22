@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"testing"
+	"time"
 )
 
 // Registering routes globally
@@ -46,6 +47,7 @@ func TestMain(m *testing.M) {
 
 // --- User API Integration Test ---
 func TestUserAPIIntegration(t *testing.T) {
+	t.Parallel()
 	t.Run("User API Integration", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/users/1", nil)
 		w := httptest.NewRecorder()
@@ -58,12 +60,15 @@ func TestUserAPIIntegration(t *testing.T) {
 
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
+		} else {
+			t.Logf("User API response was successful.")
 		}
 	})
 }
 
-// --- Database Integration Test ---
+// --- Database Integration Test (mocked) ---
 func TestDatabaseConnection(t *testing.T) {
+	t.Parallel()
 	t.Run("Database Connection", func(t *testing.T) {
 		// Simulate a database connection test (mocked)
 		user := struct {
@@ -74,12 +79,15 @@ func TestDatabaseConnection(t *testing.T) {
 
 		if user.ID != 1 {
 			t.Errorf("Expected user ID 1, got %d", user.ID)
+		} else {
+			t.Logf("Database connection simulated successfully.")
 		}
 	})
 }
 
-// --- API Endpoint Test ---
+// --- API Endpoint Test for Creating User ---
 func TestCreateUserAPI(t *testing.T) {
+	t.Parallel()
 	t.Run("Create User API", func(t *testing.T) {
 		req := httptest.NewRequest("POST", "/api/users", nil)
 		w := httptest.NewRecorder()
@@ -92,12 +100,15 @@ func TestCreateUserAPI(t *testing.T) {
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Expected status 201 but got %d", resp.StatusCode)
+		} else {
+			t.Logf("Create User API call was successful.")
 		}
 	})
 }
 
-// --- Login Integration Test (End-to-End) ---
+// --- User Login Integration Test ---
 func TestUserLogin(t *testing.T) {
+	t.Parallel()
 	t.Run("User Login", func(t *testing.T) {
 		req := httptest.NewRequest("POST", "/login", nil)
 		w := httptest.NewRecorder()
@@ -110,12 +121,15 @@ func TestUserLogin(t *testing.T) {
 
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
+		} else {
+			t.Logf("User login was successful.")
 		}
 	})
 }
 
-// --- User Workflow Test (End-to-End) ---
+// --- User Registration and Login Workflow Test ---
 func TestUserRegistrationLoginWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("User Registration and Login Workflow", func(t *testing.T) {
 		// Simulate user registration
 		req := httptest.NewRequest("POST", "/register", nil)
@@ -126,8 +140,9 @@ func TestUserRegistrationLoginWorkflow(t *testing.T) {
 
 		if w.Result().StatusCode != http.StatusCreated {
 			t.Fatalf("User registration failed with status: %d", w.Result().StatusCode)
+		} else {
+			t.Logf("User registered successfully with status %d", w.Result().StatusCode)
 		}
-		t.Logf("User registered successfully with status %d", w.Result().StatusCode)
 
 		// Simulate login after registration
 		req = httptest.NewRequest("POST", "/login", nil)
@@ -138,13 +153,15 @@ func TestUserRegistrationLoginWorkflow(t *testing.T) {
 
 		if w.Result().StatusCode != http.StatusOK {
 			t.Fatalf("Login failed with status: %d", w.Result().StatusCode)
+		} else {
+			t.Logf("User logged in successfully with status %d", w.Result().StatusCode)
 		}
-		t.Logf("User logged in successfully with status %d", w.Result().StatusCode)
 	})
 }
 
-// --- Static Code Analysis (Security Test) ---
+// --- Static Code Analysis Test (Security Test) ---
 func TestStaticAnalysis(t *testing.T) {
+	t.Parallel()
 	t.Run("Static Analysis", func(t *testing.T) {
 		cmd := exec.Command("golangci-lint", "run", "--enable=govet,staticcheck", "--disable=gofmt")
 		err := cmd.Run()
@@ -153,6 +170,65 @@ func TestStaticAnalysis(t *testing.T) {
 			t.Errorf("Static analysis failed: %v", err)
 		} else {
 			t.Log("Static analysis passed successfully.")
+		}
+	})
+}
+
+// --- Smoke Test (Basic Sanity Test) ---
+func TestSmoke(t *testing.T) {
+	t.Parallel()
+	t.Run("Smoke Test", func(t *testing.T) {
+		// Run a simple test to ensure core functionality is working
+		TestUserAPIIntegration(t)
+	})
+}
+
+// --- Performance Test (Under Load) ---
+func TestPerformance(t *testing.T) {
+	t.Parallel()
+	t.Run("Performance Test", func(t *testing.T) {
+		// Start the test server
+		ts := httptest.NewServer(http.DefaultServeMux)
+		defer ts.Close()
+
+		// Measure the performance for 1000 requests
+		start := time.Now()
+
+		for i := 0; i < 1000; i++ {
+			_, err := http.Get(ts.URL + "/api/users/1")
+			if err != nil {
+				t.Fatalf("Request %d failed: %v", i, err)
+			}
+		}
+
+		duration := time.Since(start)
+		t.Logf("Processed 1000 requests in %v", duration)
+	})
+}
+
+// --- Security Test (SQL Injection Simulation) ---
+func TestSecuritySQLInjection(t *testing.T) {
+	t.Parallel()
+	t.Run("Security Test - SQL Injection", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/users/1' OR 1=1 --", nil)
+		w := httptest.NewRecorder()
+
+		// Simulate calling the handler
+		http.DefaultServeMux.ServeHTTP(w, req)
+
+		// Check the response
+		resp := w.Result()
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
+		} else {
+			t.Logf("SQL injection test passed with status %d", resp.StatusCode)
+		}
+
+		expected := `{"id": 1, "name": "John Doe"}`
+		if w.Body.String() != expected {
+			t.Errorf("Expected body %q but got %q", expected, w.Body.String())
+		} else {
+			t.Logf("Response body matched expected output.")
 		}
 	})
 }
