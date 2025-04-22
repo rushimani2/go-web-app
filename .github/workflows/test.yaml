@@ -24,22 +24,17 @@ jobs:
       - name: Install dependencies
         run: go mod tidy
 
+      - name: Build the code (verbose)
+        run: go build ./...  # Make sure build step passes before running tests
+
       - name: Run all tests with verbose output
         run: |
-          mkdir -p test-results  # Create a directory to store test results
-          go test -v ./integration/api_integration_test.go > test-results/test_output.log || true # Save test output to file
-          
+          mkdir -p test-results
+          go test -v ./integration/api_integration_test.go > test-results/test_output.log || true
+
       - name: Upload test results as artifacts
         if: always()  # Upload test results even if some tests fail
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results/test_output.log  # Specify the file or directory to upload
-
-      # Optional: Upload additional logs or other artifacts
-      - name: Upload additional logs
-        if: always()  # Upload logs even if tests fail
-        uses: actions/upload-artifact@v4
-        with:
-          name: additional-logs
-          path: ./logs/  # Replace with your actual logs directory or file
+          path: test-results/test_output.log
