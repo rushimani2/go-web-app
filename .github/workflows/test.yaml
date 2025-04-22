@@ -9,26 +9,27 @@ on:
       - main
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Check out the code
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    # Step 2: Set up Go environment
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v3
       with:
         go-version: '1.22'
 
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
 
-    # Step 6: Run Go tests with detailed output
-    - name: Run tests
+    - name: Run Go tests
       run: |
         go mod tidy
         go test -v ./integration/api_integration_test.go
-
-    # Step 7: Upload test results as artifacts (optional)
-
