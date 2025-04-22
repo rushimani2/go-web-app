@@ -4,8 +4,6 @@ import (
 	"testing"
 	"net/http"
 	"net/http/httptest"
-	"your_project/internal/service"
-	"your_project/internal/database"
 )
 
 // --- User API Integration Test ---
