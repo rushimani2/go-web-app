@@ -51,9 +51,3 @@ jobs:
         go mod tidy
         go test -v ./integration/api_integration_test.go
 
-    # Step 7: Upload test results as artifacts (optional)
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-output
-        path: test_output.log
