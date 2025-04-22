@@ -26,11 +26,20 @@ jobs:
 
       - name: Run all tests with verbose output
         run: |
-          go test -v ./integration/api_integration_test.go || true # Ensures all tests are run, even if some fail
-
-      - name: Upload test results as artifacts (Optional)
-        if: failure() # Upload results only if some tests fail
+          mkdir -p test-results  # Create a directory to store test results
+          go test -v ./integration/api_integration_test.go > test-results/test_output.log || true # Save test output to file
+          
+      - name: Upload test results as artifacts
+        if: always()  # Upload test results even if some tests fail
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: ./static  # You can specify a directory to store the results, or use a direct file if you prefer
+          path: test-results/test_output.log  # Specify the file or directory to upload
+
+      # Optional: Upload additional logs or other artifacts
+      - name: Upload additional logs
+        if: always()  # Upload logs even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: additional-logs
+          path: ./logs/  # Replace with your actual logs directory or file
