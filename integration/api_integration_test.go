@@ -3,6 +3,7 @@ package integration
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"os/exec"
 	"testing"
 )
