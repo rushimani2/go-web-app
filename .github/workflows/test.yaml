@@ -21,27 +21,14 @@ jobs:
         with:
           go-version: 1.22.2
 
-      - name: Run Unit Tests
-        run: go test -v ./.main_test.go/...
+      - name: Run Unit Tests (main_test.go)
+        run: go test -v ./
 
       - name: Run Integration Tests
         run: go test -v ./integration_test/...
+        if: always() # Run even if unit tests fail for demonstration
 
-      # You would add similar steps for other test types as you implement them
-      # For example, for End-to-End Tests (if you create an 'e2e' directory):
-      # - name: Run End-to-End Tests
-      #   run: go test -v ./e2e/...
-      #   # You might need to set up an environment for E2E tests here
-
-      # For Smoke Tests (if you create a 'smoke_test' directory):
-      # - name: Run Smoke Tests
-      #   run: go test -v ./smoke_test/...
-
-      # Performance, Reliability, Security, Contract, and Canary tests often involve
-      # separate tools and more complex setup. You would add steps to execute those tools here.
-      # Example for tagged performance tests:
-      # - name: Run Performance Tests
-      #   run: go test -v -tags=performance ./...
+      # ... (rest of your test steps for other types) ...
 
   build:
     runs-on: ubuntu-latest
