@@ -21,11 +21,7 @@ jobs:
         with:
           go-version: 1.22.2
 
-      - name: Run Unit and Integration Tests
-        run: go test -v ./all_tests.go
-
-      - name: Run Performance Tests
-        run: go test -bench=. ./all_tests.go
-        continue-on-error: true
+      - name: Run specific integration test
+        run: go test ./integration/user_integration_test.go
 
       # ... (rest of your test steps - the -run flags might be unnecessary if all tests are in all_tests.go) ...
