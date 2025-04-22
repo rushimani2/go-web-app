@@ -24,6 +24,8 @@ func TestUserAPIIntegration(t *testing.T) {
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		resp := w.Result()
+		t.Logf("Response Status: %d", resp.StatusCode)
+
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
 		}
@@ -38,6 +40,8 @@ func TestDatabaseConnection(t *testing.T) {
 		user := struct {
 			ID int
 		}{ID: 1} // Simulate a user object
+
+		t.Logf("Mock user ID: %d", user.ID)
 
 		if user.ID != 1 {
 			t.Errorf("Expected user ID 1, got %d", user.ID)
@@ -61,6 +65,7 @@ func TestCreateUserAPI(t *testing.T) {
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		resp := w.Result()
+		t.Logf("Create User API response status: %d", resp.StatusCode)
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Expected status 201 but got %d", resp.StatusCode)
@@ -85,6 +90,8 @@ func TestUserLogin(t *testing.T) {
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		resp := w.Result()
+		t.Logf("Login response status: %d", resp.StatusCode)
+
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
 		}
@@ -110,6 +117,7 @@ func TestUserRegistrationLoginWorkflow(t *testing.T) {
 		if w.Result().StatusCode != http.StatusCreated {
 			t.Fatalf("User registration failed with status: %d", w.Result().StatusCode)
 		}
+		t.Logf("User registered successfully with status %d", w.Result().StatusCode)
 
 		// Simulate login after registration
 		req = httptest.NewRequest("POST", "/login", nil)
@@ -127,25 +135,7 @@ func TestUserRegistrationLoginWorkflow(t *testing.T) {
 		if w.Result().StatusCode != http.StatusOK {
 			t.Fatalf("Login failed with status: %d", w.Result().StatusCode)
 		}
-	})
-}
-
-// --- Performance Load Test ---
-func BenchmarkUserAPI(b *testing.B) {
-	b.Run("User API Load Benchmark", func(b *testing.B) {
-		req := httptest.NewRequest("GET", "/api/users", nil)
-		w := httptest.NewRecorder()
-
-		// Mock handler for /api/users
-		http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"id": 1, "name": "John Doe"}`)) // Mock user data response
-		})
-
-		// Benchmark handler invocation
-		for i := 0; i < b.N; i++ {
-			http.DefaultServeMux.ServeHTTP(w, req)
-		}
+		t.Logf("User logged in successfully with status %d", w.Result().StatusCode)
 	})
 }
 
@@ -154,8 +144,11 @@ func TestStaticAnalysis(t *testing.T) {
 	t.Run("Static Analysis", func(t *testing.T) {
 		cmd := exec.Command("golangci-lint", "run", "--enable=govet,staticcheck", "--disable=gofmt")
 		err := cmd.Run()
+
 		if err != nil {
 			t.Errorf("Static analysis failed: %v", err)
+		} else {
+			t.Log("Static analysis passed successfully.")
 		}
 	})
 }
