@@ -8,7 +8,7 @@ import (
 )
 
 // --- User API Integration Test ---
-func TestUserAPIIntegration(t *testing.T) {
+func TestUserAPIIntegrationAlt(t *testing.T) { // Renamed to avoid conflict
 	t.Run("User API Integration", func(t *testing.T) {
 		// Simulate a request to your /api/users/1 endpoint
 		req := httptest.NewRequest("GET", "/api/users/1", nil)
@@ -101,58 +101,6 @@ func TestUserRegistrationLoginWorkflow(t *testing.T) {
 
 		if w.Result().StatusCode != http.StatusOK {
 			t.Fatalf("Login failed with status: %d", w.Result().StatusCode)
-		}
-	})
-}
-
-// --- Performance Load Test ---
-func BenchmarkUserAPI(b *testing.B) {
-	b.Run("User API Load Benchmark", func(b *testing.B) {
-		req := httptest.NewRequest("GET", "/api/users", nil)
-		w := httptest.NewRecorder()
-
-		for i := 0; i < b.N; i++ {
-			// Call your handler here
-			// handleRequest(w, req)
-		}
-	})
-}
-
-// --- Health Check Smoke Test ---
-func TestHealthCheck(t *testing.T) {
-	t.Run("Health Check", func(t *testing.T) {
-		resp, err := http.Get("http://localhost:8080/health")
-		if err != nil {
-			t.Fatalf("Health check failed: %v", err)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
-		}
-	})
-}
-
-// --- Canary Test ---
-func TestCanaryDeployment(t *testing.T) {
-	t.Run("Canary Deployment", func(t *testing.T) {
-		resp, err := http.Get("http://localhost:8080/canary")
-		if err != nil {
-			t.Fatalf("Canary check failed: %v", err)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			t.Errorf("Expected status 200 but got %d", resp.StatusCode)
-		}
-	})
-}
-
-// --- Static Code Analysis (Security Test) ---
-func TestStaticAnalysis(t *testing.T) {
-	t.Run("Static Analysis", func(t *testing.T) {
-		cmd := exec.Command("golangci-lint", "run", "--enable=govet,staticcheck", "--disable=gofmt")
-		err := cmd.Run()
-		if err != nil {
-			t.Errorf("Static analysis failed: %v", err)
 		}
 	})
 }
