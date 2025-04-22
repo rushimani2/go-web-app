@@ -21,56 +21,11 @@ jobs:
         with:
           go-version: 1.22.2
 
-      - name: Run Unit Tests
+      - name: Run Unit and Integration Tests
         run: go test -v ./all_tests.go
-
-      - name: Run Integration Tests
-        run: go test -v ./all_tests.go -run ^TestExampleHTTPHandlerIntegration$
-
-      - name: Run End-to-End Tests (Placeholder - Requires Setup)
-        run: echo "Running End-to-End Tests (Requires a running application and E2E framework setup)"
-        # You would replace this with commands to run your E2E tests
-        # Example using a hypothetical E2E tool:
-        # run: cd e2e_tests && go test -v ./...
-        if: false # Skip by default, enable when E2E setup is done
 
       - name: Run Performance Tests
         run: go test -bench=. ./all_tests.go
-        continue-on-error: true # Performance tests might not always need to block the pipeline
+        continue-on-error: true
 
-      - name: Run Security Tests (Placeholder - Requires Security Tools)
-        run: echo "Running Security Tests (Requires integration with security scanning tools)"
-        # Example using a static analysis tool:
-        # run: go vet ./... && golangci-lint run
-        if: false # Skip by default, enable when security testing is integrated
-
-      - name: Run Contract Tests (Placeholder - Requires Mocking Setup)
-        run: go test -v ./all_tests.go -run ^TestExampleContract$
-        if: false # Skip by default, enable when contract testing is implemented
-
-      - name: Run Smoke Tests (Placeholder - Requires Running Application)
-        run: echo "Running Smoke Tests (Requires a running application)"
-        # Example using a simple HTTP check:
-        # run: curl -f http://localhost:8080/health || exit 1
-        if: false # Skip by default, enable when smoke testing is set up
-
-      - name: Run Canary Testing (Placeholder - Typically handled by deployment tools)
-        run: echo "Canary Testing is usually handled by deployment strategies and monitoring"
-        if: false
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Go 1.22
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.22.2
-
-      - name: Build Go application
-        run: go build -o go-web-app
-
-  # ... (rest of your build, push, and update-helm-chart jobs remain the same) ...
+      # ... (rest of your test steps - the -run flags might be unnecessary if all tests are in all_tests.go) ...
