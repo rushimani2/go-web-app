@@ -1,26 +1,45 @@
 package integration
 
 import (
-	"testing"
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
+	"testing"
 )
+
+// Registering routes globally to avoid multiple registrations
+func registerRoutes() {
+	http.HandleFunc("/api/users/1", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": 1, "name": "John Doe"}`)) // Mocking a user response
+	})
+
+	http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"id": 2, "name": "Jane Doe"}`)) // Mock creating a new user
+	})
+
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message": "Login successful"}`)) // Mock login success response
+	})
+
+	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"id": 1, "name": "New User"}`)) // Mock user registration response
+	})
+}
 
 // --- User API Integration Test ---
 func TestUserAPIIntegration(t *testing.T) {
 	t.Run("User API Integration", func(t *testing.T) {
-		// Simulate a request to your /api/users/1 endpoint
+		// Register routes before testing
+		registerRoutes()
+
 		req := httptest.NewRequest("GET", "/api/users/1", nil)
 		w := httptest.NewRecorder()
 
-		// Mock a simple handler for /api/users/1 endpoint
-		http.HandleFunc("/api/users/1", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"id": 1, "name": "John Doe"}`)) // Mocking a user response
-		})
-
-		// Call the handler (this simulates the request and response cycle)
+		// Simulate calling the handler
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		resp := w.Result()
@@ -35,11 +54,13 @@ func TestUserAPIIntegration(t *testing.T) {
 // --- Database Integration Test ---
 func TestDatabaseConnection(t *testing.T) {
 	t.Run("Database Connection", func(t *testing.T) {
-		// Here, no real DB connection is needed, so we'll mock it
-		// Simulate a database connection test
+		// Register routes before testing (if necessary)
+		registerRoutes()
+
+		// Simulate a database connection test (mocked)
 		user := struct {
 			ID int
-		}{ID: 1} // Simulate a user object
+		}{ID: 1} // Mocked user data
 
 		t.Logf("Mock user ID: %d", user.ID)
 
@@ -52,16 +73,13 @@ func TestDatabaseConnection(t *testing.T) {
 // --- API Endpoint Test ---
 func TestCreateUserAPI(t *testing.T) {
 	t.Run("Create User API", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/api/users", nil) // Mock POST request to create a user
+		// Register routes before testing
+		registerRoutes()
+
+		req := httptest.NewRequest("POST", "/api/users", nil)
 		w := httptest.NewRecorder()
 
-		// Mock a simple handler for creating a user
-		http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusCreated)
-			w.Write([]byte(`{"id": 2, "name": "Jane Doe"}`)) // Mock creating a new user
-		})
-
-		// Call the handler
+		// Simulate calling the handler
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		resp := w.Result()
@@ -76,17 +94,13 @@ func TestCreateUserAPI(t *testing.T) {
 // --- Login Integration Test (End-to-End) ---
 func TestUserLogin(t *testing.T) {
 	t.Run("User Login", func(t *testing.T) {
-		// Mock a POST request to /login endpoint
+		// Register routes before testing
+		registerRoutes()
+
 		req := httptest.NewRequest("POST", "/login", nil)
 		w := httptest.NewRecorder()
 
-		// Mock the login handler
-		http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"message": "Login successful"}`)) // Mock login success response
-		})
-
-		// Call the handler
+		// Simulate calling the handler
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		resp := w.Result()
@@ -101,17 +115,14 @@ func TestUserLogin(t *testing.T) {
 // --- User Workflow Test (End-to-End) ---
 func TestUserRegistrationLoginWorkflow(t *testing.T) {
 	t.Run("User Registration and Login Workflow", func(t *testing.T) {
+		// Register routes before testing
+		registerRoutes()
+
 		// Simulate user registration
 		req := httptest.NewRequest("POST", "/register", nil)
 		w := httptest.NewRecorder()
 
-		// Mock registration handler
-		http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusCreated)
-			w.Write([]byte(`{"id": 1, "name": "New User"}`)) // Mock user registration response
-		})
-
-		// Call registration handler
+		// Simulate calling the registration handler
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		if w.Result().StatusCode != http.StatusCreated {
@@ -123,13 +134,7 @@ func TestUserRegistrationLoginWorkflow(t *testing.T) {
 		req = httptest.NewRequest("POST", "/login", nil)
 		w = httptest.NewRecorder()
 
-		// Mock the login handler
-		http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"message": "Login successful"}`)) // Mock login success
-		})
-
-		// Call the login handler
+		// Simulate calling the login handler
 		http.DefaultServeMux.ServeHTTP(w, req)
 
 		if w.Result().StatusCode != http.StatusOK {
