@@ -1,1 +1,54 @@
-hi
+name: CI/CD with Explicit Test Names
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'helm/**'
+      - 'k8s/**'
+      - 'README.md'
+
+jobs:
+  # Run Go tests with explicit names
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+
+      - name: Run TestHomePage
+        run: go test -v -run TestHomePage ./...
+
+      - name: Run TestAnotherFunction
+        run: go test -v -run TestAnotherFunction ./...
+
+      - name: Run TestUserCreation
+        run: go test -v -run TestUserCreation ./...
+
+      # Add more steps here for each of your test functions
+      # Example:
+      # - name: Run TestSomeOtherFunction
+      #   run: go test -v -run TestSomeOtherFunction ./...
+
+  # Build Go binary
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+
+      - name: Build Go application
+        run: go build -o go-web-app
+
