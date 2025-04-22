@@ -54,7 +54,7 @@ func ipPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset= utf-8")
 	fmt.Fprint(w, `<html><head><title>Hello</title>
 		<style>
 			body {
