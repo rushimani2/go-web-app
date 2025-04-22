@@ -1,4 +1,4 @@
-name: CI/CD with Explicit Test Names
+name: CI/CD with Different Test Types
 
 on:
   push:
@@ -10,7 +10,6 @@ on:
       - 'README.md'
 
 jobs:
-  # Run Go tests with explicit names
   test:
     runs-on: ubuntu-latest
     steps:
@@ -22,21 +21,31 @@ jobs:
         with:
           go-version: 1.22.2
 
-      - name: Run TestHomePage
-        run: go test -v -run TestHomePage ./...
+      - name: Run Unit Tests
+        run: go test -v ./...
 
-      - name: Run TestAnotherFunction
-        run: go test -v -run TestAnotherFunction ./...
+      # Example for Integration Tests (assuming you have tests in ./integration_test)
+      - name: Run Integration Tests
+        run: go test -v ./integration_test/...
 
-      - name: Run TestUserCreation
-        run: go test -v -run TestUserCreation ./...
+      # Example for End-to-End Tests (assuming you have tests in ./e2e)
+      - name: Run End-to-End Tests
+        run: go test -v ./e2e/...
+        # You might need to set up an environment for E2E tests here
 
-      # Add more steps here for each of your test functions
-      # Example:
-      # - name: Run TestSomeOtherFunction
-      #   run: go test -v -run TestSomeOtherFunction ./...
+      # You would add similar steps for other test types
+      # For example, for Smoke Tests:
+      # - name: Run Smoke Tests
+      #   run: go test -v ./smoke_test/...
 
-  # Build Go binary
+      # Performance, Reliability, Security, Contract, and Canary tests often involve
+      # separate tools and might have more complex setup steps.
+      # You would add steps to execute those tools here.
+      # Example for a simple performance test using a Go library:
+      # - name: Run Performance Tests
+      #   run: go test -v -tags=performance ./...
+      #   # Assuming you use build tags to separate performance tests
+
   build:
     runs-on: ubuntu-latest
     needs: test
@@ -52,3 +61,4 @@ jobs:
       - name: Build Go application
         run: go build -o go-web-app
 
+  # ... (rest of your build, push, and update-helm-chart jobs remain the same) ...
