@@ -13,45 +13,33 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: sonar
-          POSTGRES_PASSWORD: sonar
-          POSTGRES_DB: sonar
-        ports:
-          - 5432:5432
-
       sonar:
         image: sonarqube:latest
         options: >-
           --health-cmd="curl --silent --fail http://localhost:9000/api/system/health" 
           --health-timeout=180s --health-retries=5
-          -e SONARQUBE_JAVA_OPTS="-Xmx2g -Xms512m"
         ports:
           - 9000:9000
-        env:
-          SONARQUBE_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
-          SONARQUBE_JDBC_USERNAME: sonar
-          SONARQUBE_JDBC_PASSWORD: sonar
 
     steps:
-      # Checkout code
       - name: Checkout Code
         uses: actions/checkout@v2
 
-      # Run SonarQube analysis
+      - name: Install SonarScanner
+        run: |
+          wget -qO- https://github.com/SonarSource/sonar-scanner-cli/releases/download/4.7.0.2747/sonar-scanner-cli-4.7.0.2747-linux.zip | unzip -d /tmp
+          export PATH=$PATH:/tmp/sonar-scanner-4.7.0.2747-linux/bin
+
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          docker exec -t $(docker ps -q --filter "ancestor=sonarqube") \
-            sonar-scanner \
-              -Dsonar.projectKey=go-web-app \
-              -Dsonar.sources=./src \
-              -Dsonar.host.url=http://localhost:9000 \
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-              
+          sonar-scanner \
+            -Dsonar.projectKey=go-web-app \
+            -Dsonar.sources=./ \
+            -Dsonar.host.url=http://localhost:9000 \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
   build-deploy:
     runs-on: ubuntu-latest
     needs: sonar-analysis
@@ -64,14 +52,14 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t go-web-app .
-      
+
       # Run Docker Container
       - name: Run Docker Container
         run: |
           docker run -d -p 8080:8080 go-web-app
 
       # Get the public IP of the running container
-      - name: Get public IP of the application
+      - name: Get Public IP of the application
         run: |
           PUBLIC_IP=$(curl ifconfig.me)
           echo "Public IP is: $PUBLIC_IP"
