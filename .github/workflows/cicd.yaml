@@ -30,9 +30,10 @@ jobs:
             exit 1
           fi
 
-      - name: Static Analysis (go vet)
+      - name: Static Analysis (GolangCI-Lint)
         run: |
-          go vet ./...
+          curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.51.2/golangci-lint-1.51.2-linux-amd64.tar.gz | tar -xz -C /tmp
+          /tmp/golangci-lint-1.51.2-linux-amd64/golangci-lint run --fix
 
       - name: Static Analysis (golangci-lint)
         uses: golangci/golangci-lint-action@v3
