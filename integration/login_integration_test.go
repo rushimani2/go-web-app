@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"your_project/internal/app"
+	"github.com/rushimani2/go-web-app"
 )
 
 func TestUserLogin(t *testing.T) {
