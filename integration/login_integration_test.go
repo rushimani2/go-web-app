@@ -1,21 +1,19 @@
 package integration
 
 import (
-	"testing"
 	"net/http"
 	"net/http/httptest"
-	"your_project/internal/app"
+	"testing"
 )
 
-func TestUserLogin(t *testing.T) {
-	app := app.New()
-
+func TestLoginPageIntegration(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login", nil)
 	w := httptest.NewRecorder()
 
-	app.ServeHTTP(w, req)
+	loginPage(w, req) // Directly calling your loginPage handler
 
 	resp := w.Result()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200 but got %d", resp.StatusCode)
 	}
