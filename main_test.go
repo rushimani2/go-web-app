@@ -1,15 +1,16 @@
-// main_test.go
-package main
+package mypackage
 
 import "testing"
 
-func TestGenerateGreeting(t *testing.T) {
-    name := "World"
-    expected := "Hello, World!"
+// Sample function to test
+func Add(a, b int) int {
+    return a + b
+}
 
-    result := GenerateGreeting(name)
+func TestAdd(t *testing.T) {
+    result := Add(1, 2)
     
-    if result != expected {
-        t.Errorf("Expected '%s', but got '%s'", expected, result)
+    if result != 3 {
+        t.Errorf("Expected 3, but got %d", result)
     }
 }
