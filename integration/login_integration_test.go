@@ -4,7 +4,7 @@ import (
     "net/http"
     "net/http/httptest"
     "testing"
-    "github.com/rushimani2/go-web-app" // Make sure this import path is correct
+    "github.com/rushimani2/go-web-app" // Make sure this path is correct
 )
 
 func TestUserLogin(t *testing.T) {
