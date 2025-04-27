@@ -1,17 +1,29 @@
 package integration
 
 import (
-	"testing"
 	"net/http"
 	"net/http/httptest"
-	"your_project/internal/service"
+	"testing"
 )
 
-func TestUserAPIIntegration(t *testing.T) {
-	req := httptest.NewRequest("GET", "/api/users/1", nil)
+func TestIPPageIntegration(t *testing.T) {
+	req := httptest.NewRequest("GET", "/ip", nil)
 	w := httptest.NewRecorder()
 
-	service.HandleUserRequest(w, req) // Replace with your actual handler
+	ipPage(w, req)
+
+	resp := w.Result()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status 200 but got %d", resp.StatusCode)
+	}
+}
+
+func TestHomePageIntegration(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", nil)
+	w := httptest.NewRecorder()
+
+	homePage(w, req)
 
 	resp := w.Result()
 
