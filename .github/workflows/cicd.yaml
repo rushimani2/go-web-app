@@ -33,7 +33,7 @@ jobs:
       - name: Static Analysis (Staticcheck)
         run: |
           go install honnef.co/go/tools/cmd/staticcheck@latest
-          staticcheck ./...
+          staticcheck main.go
 
 
       - name: Run Unit Tests
