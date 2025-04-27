@@ -30,10 +30,10 @@ jobs:
             exit 1
           fi
 
-      - name: Static Analysis (Staticcheck)
+      - name: Static Analysis (golangci-lint)
         run: |
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          staticcheck main.go
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run main.go
 
 
       - name: Run Unit Tests
