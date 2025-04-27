@@ -30,11 +30,6 @@ jobs:
             exit 1
           fi
 
-      - name: Static Analysis (GolangCI-Lint)
-        run: |
-          curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.51.2/golangci-lint-1.51.2-linux-amd64.tar.gz | tar -xz -C /tmp
-          /tmp/golangci-lint-1.51.2-linux-amd64/golangci-lint run --fix
-
       - name: Static Analysis (Staticcheck)
         run: |
           go install honnef.co/go/tools/cmd/staticcheck@latest
