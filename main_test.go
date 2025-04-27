@@ -1,22 +1,32 @@
+// main_test.go
+
 package main
 
 import (
+	"testing"
 	"net/http"
 	"net/http/httptest"
-	"testing"
+	"your_project/internal/app" // Replace with the actual path to your app package
 )
 
-func TestHealthEndpoint(t *testing.T) {
-	router := setupRouter() // assuming you have a setupRouter() or similar
-	req := httptest.NewRequest("GET", "/healthz", nil)
+// Define the setupRouter function
+func setupRouter() *http.ServeMux {
+	// Replace with actual router setup
+	mux := http.NewServeMux()
+	// Add your route handlers here
+	mux.HandleFunc("/login", app.LoginHandler) // Example
+	return mux
+}
+
+func TestLoginPage(t *testing.T) {
+	req := httptest.NewRequest("GET", "/login", nil)
 	w := httptest.NewRecorder()
+	router := setupRouter()
 
 	router.ServeHTTP(w, req)
 
 	resp := w.Result()
-	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected 200 OK but got %d", resp.StatusCode)
+		t.Errorf("Expected status 200 but got %d", resp.StatusCode)
 	}
 }
