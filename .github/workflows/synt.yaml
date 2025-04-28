@@ -40,7 +40,7 @@ jobs:
 
       - name: Synthesize into Temporary Directory
         run: |
-          cdk8s synth --output temp-synth-output/
+          cdk8s synth --app "go run main.go" --output temp-synth-output/
 
       - name: Copy Deployment YAML
         run: |
