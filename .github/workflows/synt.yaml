@@ -1,0 +1,59 @@
+# .github/workflows/cdk8s-go-synth.yml
+
+name: CDK8s Go Synthesizer Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  synthesize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install CDK8s CLI
+        run: npm install -g cdk8s-cli
+
+      - name: Install Go Dependencies
+        run: |
+          go mod tidy
+          go get github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2
+          go get github.com/cdk8s-team/cdk8s-plus-go/cdk8splus25/v2
+
+      - name: Create a Temporary Directory for Synth
+        run: mkdir -p temp-synth-output/
+
+      - name: Synthesize into Temporary Directory
+        run: |
+          cdk8s synth --output temp-synth-output/
+
+      - name: Copy Deployment YAML
+        run: |
+          cp temp-synth-output/*deployment*.yaml helm/go-web-app-chart/templates/deployment.yaml || echo "Deployment YAML not found"
+
+      - name: Copy Service YAML
+        run: |
+          cp temp-synth-output/*service*.yaml helm/go-web-app-chart/templates/service.yaml || echo "Service YAML not found"
+
+      - name: Copy Ingress YAML
+        run: |
+          cp temp-synth-output/*ingress*.yaml helm/go-web-app-chart/templates/ingress.yaml || echo "Ingress YAML not found"
+
+      - name: List Final Template Files
+        run: |
+          ls -l helm/go-web-app-chart/templates/
