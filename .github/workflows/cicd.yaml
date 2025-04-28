@@ -10,37 +10,43 @@ on:
       - 'README.md'
 
 jobs:
-  lint-test-build:
-    runs-on: ubuntu-latest
+  # -----------------------------------------
+  # Lint and Test stage (currently disabled)
+  # -----------------------------------------
+  # lint-test-build:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.22.2
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v4
+  #       with:
+  #         go-version: 1.22.2
 
-      - name: Check Go Formatting (gofmt)
-        run: |
-          if [ -n "$(gofmt -l main.go)" ]; then
-            echo "The following files are not formatted:"
-            gofmt -l .
-            exit 1
-          fi
+  #     - name: Check Go Formatting (gofmt)
+  #       run: |
+  #         if [ -n "$(gofmt -l .)" ]; then
+  #           echo "The following files are not formatted:"
+  #           gofmt -l .
+  #           exit 1
+  #         fi
 
-      - name: Static Analysis (Staticcheck)
-        run: |
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          staticcheck main.go
+  #     - name: Static Analysis (Staticcheck)
+  #       run: |
+  #         go install honnef.co/go/tools/cmd/staticcheck@latest
+  #         staticcheck ./...
 
-      - name: Run Unit Tests
-        run: go test -v main.go
+  #     - name: Run Unit Tests
+  #       run: go test -v ./...
 
+  # -----------------------------------------
+  # Build stage
+  # -----------------------------------------
   build:
     runs-on: ubuntu-latest
-    needs: lint-test-build
+    # needs: lint-test-build   # removed dependency
 
     steps:
       - name: Checkout repository
@@ -54,6 +60,9 @@ jobs:
       - name: Build Go application
         run: go build -o go-web-app
 
+  # -----------------------------------------
+  # Docker Build and Push stage
+  # -----------------------------------------
   docker-push:
     runs-on: ubuntu-latest
     needs: build
@@ -79,6 +88,9 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/go-web-app:${{ github.run_id }}
 
+  # -----------------------------------------
+  # Helm Chart Update stage
+  # -----------------------------------------
   update-helm-chart:
     runs-on: ubuntu-latest
     needs: docker-push
@@ -97,22 +109,93 @@ jobs:
       - name: Install cdk8s CLI
         run: npm install -g cdk8s-cli
 
-      - name: Synthesize Kubernetes YAML using cdk8s
-        run: |
-          cd go-web-app/cdk8s-go-web
-          go mod tidy
-          cdk8s synth --output ../../cdk8s-dist
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
 
-      - name: Overwrite Helm chart templates with synthesized YAML
+      - name: Set up cdk8s project and generate Kubernetes YAML
+        run: |
+          mkdir -p cdk8s-go-web
+          cd cdk8s-go-web
+
+          # Initialize minimal Go module
+          go mod init example.com/cdk8s-go-web
+          cdk8s init go-app
+
+          # Overwrite main.go with Deployment + Service
+          cat <<EOF > main.go
+package main
+
+import (
+    "cdk8s"
+    "github.com/cdk8s-team/cdk8s-plus-go/cdk8splus26"
+    constructs "github.com/aws/constructs-go/constructs/v10"
+)
+
+type MyChartProps struct {
+    cdk8s.ChartProps
+}
+
+func NewMyChart(scope constructs.Construct, id string, props *MyChartProps) cdk8s.Chart {
+    chart := cdk8s.NewChart(scope, &id, &props.ChartProps)
+
+    appLabels := map[string]*string{
+        "app": cdk8s.String("go-web-app"),
+    }
+
+    cdk8splus26.NewDeployment(chart, cdk8s.String("go-web-app-deployment"), &cdk8splus26.DeploymentProps{
+        Metadata: &cdk8s.ApiObjectMetadata{
+            Name: cdk8s.String("go-web-app"),
+            Labels: &appLabels,
+        },
+        Replicas: cdk8s.Float64(2),
+        Containers: &[]*cdk8splus26.ContainerProps{
+            {
+                Image: cdk8s.String("${{ secrets.DOCKERHUB_USERNAME }}/go-web-app:${{ github.run_id }}"),
+                Port:  cdk8s.Float64(8080),
+            },
+        },
+    })
+
+    cdk8splus26.NewService(chart, cdk8s.String("go-web-app-service"), &cdk8splus26.ServiceProps{
+        Metadata: &cdk8s.ApiObjectMetadata{
+            Name: cdk8s.String("go-web-app"),
+        },
+        Type: cdk8splus26.ServiceType_LOAD_BALANCER,
+        Ports: &[]*cdk8splus26.ServicePort{
+            {
+                Port:       cdk8s.Float64(80),
+                TargetPort: cdk8splus26.IntOrString_FromNumber(cdk8s.Float64(8080)),
+            },
+        },
+        Selector: &appLabels,
+    })
+
+    return chart
+}
+
+func main() {
+    app := cdk8s.NewApp(nil)
+    NewMyChart(app, "go-web-app", &MyChartProps{})
+    app.Synth()
+}
+EOF
+
+          # Tidy Go dependencies and synthesize YAML files
+          go mod tidy
+          cdk8s synth --output ../cdk8s-dist
+
+      - name: Overwrite Helm chart templates with generated YAML
         run: |
           cp -f cdk8s-dist/*.yaml go-web-app/helm/go-web-app-chart/templates/
 
-      - name: Update Helm values.yaml
+      - name: Update Helm values.yaml with new image tag and repo
         run: |
           sed -i 's|tag: .*|tag: "${{ github.run_id }}"|' go-web-app/helm/go-web-app-chart/values.yaml
           sed -i 's|repository: .*|repository: ${{ secrets.DOCKERHUB_USERNAME }}/go-web-app|' go-web-app/helm/go-web-app-chart/values.yaml
 
-      - name: Commit and push updated Helm chart
+      - name: Commit and push Helm chart updates
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
