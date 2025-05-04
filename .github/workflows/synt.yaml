@@ -1,59 +1,37 @@
-# .github/workflows/cdk8s-go-synth.yml
-
-name: CDK8s Go Synthesizer Workflow
+name: CDK8s Synth to Helm
 
 on:
   push:
+    paths:
+      - 'go-web-app/cdk8s-go-web/**'
     branches:
       - main
-  pull_request:
 
 jobs:
-  synthesize:
+  synth-and-copy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
+          go-version: '1.21'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install CDK8s CLI
-        run: npm install -g cdk8s-cli
-
-      - name: Install Go Dependencies
+      - name: Install CDK8s CLI and Go dependencies
         run: |
+          npm install -g cdk8s-cli
+          cd go-web-app/cdk8s-go-web
           go mod tidy
-          go get github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2
-          go get github.com/cdk8s-team/cdk8s-plus-go/cdk8splus25/v2
 
-      - name: Create a Temporary Directory for Synth
-        run: mkdir -p temp-synth-output/
-
-      - name: Synthesize into Temporary Directory
+      - name: Synthesize Kubernetes manifests
         run: |
-          cdk8s synth --app "go run main.go" --output temp-synth-output/
+          cd go-web-app/cdk8s-go-web
+          cdk8s synth --app "go run main.go" --output temp-synth-output
 
-      - name: Copy Deployment YAML
+      - name: Copy synthesized YAML to Helm chart templates
         run: |
-          cp temp-synth-output/*deployment*.yaml helm/go-web-app-chart/templates/deployment.yaml || echo "Deployment YAML not found"
-
-      - name: Copy Service YAML
-        run: |
-          cp temp-synth-output/*service*.yaml helm/go-web-app-chart/templates/service.yaml || echo "Service YAML not found"
-
-      - name: Copy Ingress YAML
-        run: |
-          cp temp-synth-output/*ingress*.yaml helm/go-web-app-chart/templates/ingress.yaml || echo "Ingress YAML not found"
-
-      - name: List Final Template Files
-        run: |
-          ls -l helm/go-web-app-chart/templates/
+          mkdir -p helm/go-web-app-chart/templates/generated
+          cp go-web-app/cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
