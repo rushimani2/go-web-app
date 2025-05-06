@@ -56,7 +56,6 @@ jobs:
                   {
                     image: 'nginx',  // The container image for the Deployment
                     name: 'nginx-container',
-                    ports: [{ containerPort: 80 }]
                   }
                 ]
               });
