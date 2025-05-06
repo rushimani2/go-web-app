@@ -23,18 +23,15 @@ jobs:
       - name: Set up CDK8s environment, compile, and synth
         run: |
           cd cdk8s-go-web
-
           # Initialize Node.js project
           npm init -y
-
           # Install CDK8s dependencies
           npm install cdk8s constructs typescript cdk8s-plus-25
-
           # Install CDK8s CLI globally
           npm install -g cdk8s-cli
-
-          # Create tsconfig.json for TypeScript compilation
-          echo '{
+          # Create TypeScript config (recursive include)
+          cat <<EOF > tsconfig.json
+          {
             "compilerOptions": {
               "target": "ES2020",
               "module": "CommonJS",
@@ -42,77 +39,53 @@ jobs:
               "strict": true
             },
             "include": ["**/*.ts"]
-          }' > tsconfig.json
-
-          # Create main.ts file with resources
-          echo 'import { App, Chart } from "cdk8s";
-          import { Construct } from "constructs";
-          import * as k8s from "cdk8s-plus-25";
-
+          }
+          EOF
+          # Create main.ts file with resources (e.g., a Deployment)
+          cat <<EOF > main.ts
+          import { App, Chart } from 'cdk8s';
+          import { Construct } from 'constructs';
+          import * as k8s from 'cdk8s-plus-25';
           class MyChart extends Chart {
             constructor(scope: Construct, id: string) {
               super(scope, id);
-
-              const appLabel = { app: "go-web-app" };
-
-              // Create Deployment
-              new k8s.Deployment(this, "go-web-app-deployment", {
-                metadata: {
-                  name: "go-web-app",
-                  labels: appLabel,
-                },
-                replicas: 1,
-                selector: {
-                  matchLabels: appLabel,
-                },
-                podSpec: {
-                  containers: [
-                    {
-                      name: "go-web-app",
-                      image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
-                      ports: [{ containerPort: 8080 }],
-                    },
-                  ],
-                },
-              });
-
-              // Create Service
-              new k8s.Service(this, "go-web-app-service", {
-                metadata: {
-                  name: "go-web-app",
-                  labels: appLabel,
-                },
-                ports: [
-                  {
-                    port: 80,
-                    targetPort: 8080,
-                    protocol: k8s.Protocol.TCP,
-                  },
-                ],
-                selector: appLabel,  // Correct label selector for the service
-                type: k8s.ServiceType.LOAD_BALANCER,
+              new k8s.Deployment(this, 'web-deployment', {
+                metadata: { name: 'web' },
+                containers: [{ image: 'nginx' }]
               });
             }
           }
-
           const app = new App();
-          new MyChart(app, "go-web-app-chart");
-          app.synth();' > main.ts
-
-          # Create cdk8s.yaml to point to the compiled file
-          echo 'app: node dist/main.js
-          language: typescript' > cdk8s.yaml
-
+          new MyChart(app, 'my-chart');
+          app.synth();
+          EOF
           # Compile TypeScript to JavaScript
           npx tsc
-
+          # Create cdk8s.yaml to point to the compiled file
+          cat <<EOF > cdk8s.yaml
+          app: node dist/main.js
+          language: typescript
+          EOF
           # Synthesize Kubernetes manifests
           cdk8s synth --output temp-synth-output
-
-          # List files in the synthesized output directory
-          ls -l temp-synth-output
-
+          # Ensure the output directory exists before attempting to list files
+          mkdir -p cdk8s-go-web/temp-synth-output
+          # Debug: List files in the temp-synth-output directory
+          ls -al cdk8s-go-web/temp-synth-output
       - name: Copy synthesized YAML to Helm chart templates
         run: |
           mkdir -p helm/go-web-app-chart/templates/generated
           cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+      - name: List files in Helm chart templates directory
+        run: |
+          echo "Listing files in helm/go-web-app-chart/templates/generated/"
+          ls -al helm/go-web-app-chart/templates/generated/
+      - name: Commit synthesized files to the repository
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add helm/go-web-app-chart/templates/generated/*.k8s.yaml
+          git commit -m "Add synthesized Kubernetes YAML files"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
