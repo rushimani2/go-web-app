@@ -1,23 +1,25 @@
-import { App, Chart } from "cdk8s";
-import { Construct } from "constructs";
-import * as k8s from "cdk8s-plus-25";
+import { App, Chart } from 'cdk8s';
+import { Construct } from 'constructs';
+import * as k8s from 'cdk8s-plus-25';
 
 class MyChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    // Define the label selector
-    const appLabel = { app: "go-web-app" };
+    // Define the label selector for both Deployment and Service
+    const appLabel = { app: 'go-web-app' };
 
-    // Create the Deployment
-    new k8s.Deployment(this, "go-web-app-deployment", {
+    // Create Deployment resource
+    new k8s.Deployment(this, 'go-web-app-deployment', {
       metadata: {
-        name: "go-web-app",
+        name: 'go-web-app',
         labels: appLabel,
       },
       spec: {
         replicas: 1,
-        selector: k8s.LabelSelector.all(appLabel),  // Correct selector for matching labels
+        selector: {
+          matchLabels: appLabel,
+        },
         template: {
           metadata: {
             labels: appLabel,
@@ -25,8 +27,8 @@ class MyChart extends Chart {
           spec: {
             containers: [
               {
-                name: "go-web-app",
-                image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
+                name: 'go-web-app',
+                image: 'rushibindu/go-web-app:{{ .Values.image.tag }}',
                 ports: [{ containerPort: 8080 }],
               },
             ],
@@ -35,10 +37,10 @@ class MyChart extends Chart {
       },
     });
 
-    // Create the Service
-    new k8s.Service(this, "go-web-app-service", {
+    // Create Service resource
+    new k8s.Service(this, 'go-web-app-service', {
       metadata: {
-        name: "go-web-app",
+        name: 'go-web-app',
         labels: appLabel,
       },
       spec: {
@@ -49,13 +51,14 @@ class MyChart extends Chart {
             protocol: k8s.Protocol.TCP,
           },
         ],
-        selector: appLabel,  // Correctly apply the label selector for the service
+        selector: appLabel, // Match the appLabel selector
         type: k8s.ServiceType.LOAD_BALANCER,
       },
     });
   }
 }
 
+// Initialize the app and chart
 const app = new App();
-new MyChart(app, "go-web-app-chart");
+new MyChart(app, 'go-web-app-chart');
 app.synth();
