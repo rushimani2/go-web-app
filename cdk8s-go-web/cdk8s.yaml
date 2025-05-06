@@ -1,2 +1,2 @@
-app: node dist/main.js
+app: node main.js
 language: typescript

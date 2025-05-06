@@ -6,28 +6,10 @@ class MyChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    const label = { app: 'web' };
-
-    // Create a deployment with the label
-    const deployment = new k8s.Deployment(this, 'web-deployment', {
+    // Create a deployment with a label
+    new k8s.Deployment(this, 'web-deployment', {
       metadata: { name: 'web' },
-    });
-
-    // Add a container to the deployment
-    deployment.addContainer({
-      image: 'nginx',
-      port: 80,
-    });
-
-    // Set label on the deployment's pod metadata to match the service selector
-    deployment.podMetadata.addLabel('app', 'web');
-
-    // Create a Kubernetes service that selects the pods using the 'app' label
-    new k8s.Service(this, 'web-service', {
-      metadata: { name: 'web' },
-      type: k8s.ServiceType.CLUSTER_IP,
-      ports: [{ port: 80, targetPort: 80 }],
-      selector: label, // Use the same label for the service selector
+      containers: [{ image: 'nginx' }],
     });
   }
 }
