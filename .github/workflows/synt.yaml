@@ -36,7 +36,7 @@ jobs:
             "compilerOptions": {
               "target": "ES2020",
               "module": "CommonJS",
-              "outDir": "out",  # Change the output directory to "out" instead of "dist"
+              "outDir": "out",
               "strict": true
             },
             "include": ["**/*.ts"]
@@ -71,7 +71,7 @@ jobs:
 
           # Create cdk8s.yaml for CDK8s configuration
           cat <<EOF > cdk8s.yaml
-          app: node out/main.js  # Change to the "out" directory where the compiled main.js will be
+          app: node out/main.js
           language: typescript
           EOF
 
