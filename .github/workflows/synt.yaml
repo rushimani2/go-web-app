@@ -1,4 +1,4 @@
-name: CDK8s Synth to Helm (TypeScript)
+name: CDK8s Synth to Helm (TypeScript, No Local Setup)
 
 on:
   push:
@@ -20,14 +20,20 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Set up CDK8s, write code, synthesize
+      - name: Set up CDK8s environment, compile, and synth
         run: |
           cd cdk8s-go-web
+
+          # Initialize Node.js project
           npm init -y
+
+          # Install CDK8s dependencies
           npm install cdk8s constructs typescript cdk8s-plus-25
+
+          # Install CDK8s CLI globally
           npm install -g cdk8s-cli
 
-          # Create tsconfig.json
+          # Create tsconfig.json for TypeScript compilation
           echo '{
             "compilerOptions": {
               "target": "ES2020",
@@ -38,83 +44,71 @@ jobs:
             "include": ["**/*.ts"]
           }' > tsconfig.json
 
-          # Create main.ts
+          # Create main.ts file with resources
           echo 'import { App, Chart } from "cdk8s";
           import { Construct } from "constructs";
           import * as k8s from "cdk8s-plus-25";
-
+          
           class MyChart extends Chart {
             constructor(scope: Construct, id: string) {
               super(scope, id);
 
-              const label = { app: "web" };
+              const appLabel = { app: "go-web-app" };
 
-              new k8s.Deployment(this, "web-deployment", {
-                metadata: { name: "web" },
-                spec: {
-                  selector: { matchLabels: label },
-                  replicas: 1,
-                  template: {
-                    metadata: { labels: label },
-                    spec: {
-                      containers: [{ name: "nginx", image: "nginx" }]
-                    }
-                  }
-                }
+              // Create Deployment
+              const deployment = new k8s.Deployment(this, "go-web-app-deployment", {
+                metadata: {
+                  name: "go-web-app",
+                  labels: appLabel,
+                },
+                replicas: 1,
+                selector: { matchLabels: appLabel },
               });
 
-              new k8s.Service(this, "web-service", {
-                metadata: { name: "web-service" },
-                spec: {
-                  type: k8s.ServiceType.CLUSTER_IP,
-                  ports: [{ port: 80, targetPort: 80 }],
-                  selector: label
-                }
+              // Add container to the Deployment
+              deployment.addContainer({
+                name: "go-web-app",
+                image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
+                ports: [{ containerPort: 8080 }],
               });
 
-              new k8s.Ingress(this, "web-ingress", {
-                metadata: { name: "web-ingress" },
-                spec: {
-                  rules: [
-                    {
-                      host: "web.local",
-                      http: {
-                        paths: [
-                          {
-                            path: "/",
-                            pathType: "Prefix",
-                            backend: {
-                              service: {
-                                name: "web-service",
-                                port: { number: 80 }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
+              // Create Service
+              new k8s.Service(this, "go-web-app-service", {
+                metadata: {
+                  name: "go-web-app",
+                  labels: appLabel,
+                },
+                ports: [
+                  {
+                    port: 80,
+                    targetPort: 8080,
+                    protocol: k8s.Protocol.TCP,
+                  },
+                ],
+                selector: appLabel,
+                type: k8s.ServiceType.LOAD_BALANCER,
               });
             }
           }
-
+          
           const app = new App();
-          new MyChart(app, "my-chart");
+          new MyChart(app, "go-web-app-chart");
           app.synth();' > main.ts
 
-          # Create cdk8s.yaml
+          # Create cdk8s.yaml to point to the compiled file
           echo 'app: node dist/main.js
           language: typescript' > cdk8s.yaml
 
+          # Compile TypeScript to JavaScript
           npx tsc
+
+          # Synthesize Kubernetes manifests
           cdk8s synth --output temp-synth-output
+
+          # List files in the synthesized output directory
           ls -l temp-synth-output
 
-      - name: Copy YAML to Helm chart
+      - name: Copy synthesized YAML to Helm chart templates
         run: |
           mkdir -p helm/go-web-app-chart/templates/generated
           cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
-
-      - name: List Helm chart files
-        run: ls -l helm/go-web-app-chart/templates/generated
