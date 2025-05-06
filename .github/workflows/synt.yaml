@@ -1,4 +1,4 @@
-name: CDK8s Synth to Helm
+name: CDK8s Synth to Helm (TypeScript)
 
 on:
   push:
@@ -15,21 +15,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          go-version: '1.21'
+          node-version: '18'
 
-      - name: Install CDK8s CLI and Go dependencies
+      - name: Install CDK8s CLI and dependencies
         run: |
           npm install -g cdk8s-cli
           cd go-web-app/cdk8s-go-web
-          go mod tidy
+          npm install
 
       - name: Synthesize Kubernetes manifests
         run: |
           cd go-web-app/cdk8s-go-web
-          cdk8s synth --app "go run main.go" --output temp-synth-output
+          cdk8s synth --output temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
         run: |
