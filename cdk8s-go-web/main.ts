@@ -6,44 +6,40 @@ class MyChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    // Create a Deployment
+    // Create Deployment
     const deployment = new k8s.Deployment(this, 'web-deployment', {
       metadata: { name: 'web' },
       containers: [{ image: 'nginx' }],
     });
 
-    // Create a Service
+    // Create Service
     new k8s.Service(this, 'web-service', {
       metadata: { name: 'web-service' },
-      spec: {
-        selector: { app: 'web' }, // Match Deployment selector
-        ports: [{ port: 80 }], // Expose port 80
-      },
+      selector: { app: 'web' }, // Match Deployment selector
+      ports: [{ port: 80 }], // Expose port 80
     });
 
-    // Create an Ingress
+    // Create Ingress
     new k8s.Ingress(this, 'web-ingress', {
       metadata: { name: 'web-ingress' },
-      spec: {
-        rules: [
-          {
-            host: 'web.local', // You should change this for your real use case
-            http: {
-              paths: [
-                {
-                  path: '/',
-                  backend: {
-                    service: {
-                      name: 'web-service',
-                      port: { number: 80 },
-                    },
+      rules: [
+        {
+          host: 'web.local', // Change this according to your requirements
+          http: {
+            paths: [
+              {
+                path: '/',
+                backend: {
+                  service: {
+                    name: 'web-service',
+                    port: 80, // Correcting the port definition
                   },
                 },
-              ],
-            },
+              },
+            ],
           },
-        ],
-      },
+        },
+      ],
     });
   }
 }
