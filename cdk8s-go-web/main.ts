@@ -2,52 +2,49 @@ import { App, Chart } from 'cdk8s';
 import { Construct } from 'constructs';
 import * as k8s from 'cdk8s-plus-25';
 
-class MyChart extends Chart {
+class GoWebAppChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    // Create Deployment
-    const deployment = new k8s.Deployment(this, 'web-deployment', {
-      metadata: { name: 'web' },
-      containers: [{ image: 'nginx' }],
+    const appLabel = { app: 'go-web-app' };
+
+    // Deployment
+    const deployment = new k8s.Deployment(this, 'go-web-app-deployment', {
+      metadata: {
+        name: 'go-web-app',
+        labels: appLabel,
+      },
+      replicas: 1,
+      selector: { matchLabels: appLabel },
     });
 
-    // Create Service
-    new k8s.Service(this, 'web-service', {
-      metadata: { name: 'web-service' },
-      spec: {
-        selector: { app: 'web' }, // Correcting the selector to use app=web
-        ports: [{ port: 80 }],
-      },
+    deployment.addContainer({
+      name: 'go-web-app',
+      image: 'rushibindu/go-web-app:{{ .Values.image.tag }}',
+      port: 8080,
     });
 
-    // Create Ingress
-    new k8s.Ingress(this, 'web-ingress', {
-      metadata: { name: 'web-ingress' },
-      spec: {
-        rules: [
-          {
-            host: 'web.local',
-            http: {
-              paths: [
-                {
-                  path: '/',
-                  backend: {
-                    service: {
-                      name: 'web-service',
-                      port: 80,
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        ],
+    deployment.podMetadata.addLabels(appLabel);
+
+    // Service
+    new k8s.Service(this, 'go-web-app-service', {
+      metadata: {
+        name: 'go-web-app',
+        labels: appLabel,
       },
+      type: k8s.ServiceType.LOAD_BALANCER,
+      ports: [
+        {
+          port: 80,
+          targetPort: 8080,
+          protocol: k8s.Protocol.TCP,
+        },
+      ],
+      selector: appLabel,
     });
   }
 }
 
 const app = new App();
-new MyChart(app, 'my-chart');
+new GoWebAppChart(app, 'go-web-app-chart');
 app.synth();
