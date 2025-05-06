@@ -87,7 +87,7 @@ jobs:
           mkdir -p helm/go-web-app-chart/templates/generated
           
           # Copy the generated Kubernetes YAML files into Helm chart templates
-          cp out/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+          cp temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
 
       - name: List files in Helm chart templates directory
         run: |
