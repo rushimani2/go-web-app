@@ -2,7 +2,7 @@ import { App, Chart } from 'cdk8s';
 import { Construct } from 'constructs';
 import * as k8s from 'cdk8s-plus-25';
 
-class GoWebAppChart extends Chart {
+class MyChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
@@ -45,5 +45,5 @@ class GoWebAppChart extends Chart {
 }
 
 const app = new App();
-new GoWebAppChart(app, 'go-web-app-chart');
+new MyChart(app, 'go-web-app-chart');
 app.synth();
