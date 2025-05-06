@@ -18,7 +18,7 @@ jobs:
       - name: Set up Go environment
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'  # Make sure this is the Go version you need
+          go-version: '1.18'
 
       - name: Install dependencies and synthesize Kubernetes YAML
         run: |
@@ -35,7 +35,6 @@ jobs:
 
           import (
               "github.com/cdk8s-team/cdk8s-go/cdk8s"
-              "github.com/cdk8s-team/cdk8s-go/cdk8s/k8s"
               "github.com/aws/constructs-go/constructs"
           )
 
@@ -46,29 +45,31 @@ jobs:
           func NewMyChart(scope constructs.Construct, id string) MyChart {
               chart := cdk8s.NewChart(scope, &id)
 
-              // Create Deployment
-              k8s.NewDeployment(chart, "web-deployment", &k8s.DeploymentProps{
+              // Create Deployment (simplified)
+              cdk8s.NewApiObject(chart, "web-deployment", &cdk8s.ApiObjectProps{
+                  Kind: "Deployment",
+                  ApiVersion: "apps/v1",
                   Metadata: &cdk8s.ApiObjectMetadata{
                       Name: "web",
                   },
-                  Spec: &k8s.DeploymentSpec{
-                      Replicas: cdk8s.Number(1),
-                      Selector: &k8s.LabelSelector{
-                          MatchLabels: map[string]string{
+                  Spec: map[string]interface{}{
+                      "replicas": 1,
+                      "selector": map[string]interface{}{
+                          "matchLabels": map[string]string{
                               "app": "web",
                           },
                       },
-                      Template: &k8s.PodTemplateSpec{
-                          Metadata: &cdk8s.ApiObjectMetadata{
-                              Labels: map[string]string{
+                      "template": map[string]interface{}{
+                          "metadata": map[string]interface{}{
+                              "labels": map[string]string{
                                   "app": "web",
                               },
                           },
-                          Spec: &k8s.PodSpec{
-                              Containers: []k8s.Container{
+                          "spec": map[string]interface{}{
+                              "containers": []map[string]interface{}{
                                   {
-                                      Name:  "nginx-container",
-                                      Image: "nginx",
+                                      "name":  "nginx-container",
+                                      "image": "nginx",
                                   },
                               },
                           },
@@ -99,17 +100,14 @@ jobs:
 
       - name: Commit all files inside cdk8s-go-web directory
         run: |
-          # Set up git configuration
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          # Add the modified files to git (main.go, cdk8s.yaml, synthesized YAML, etc.)
           git add cdk8s-go-web/main.go
           git add cdk8s-go-web/cdk8s.yaml
           git add cdk8s-go-web/temp-synth-output/deployment.yaml
           git add cdk8s-go-web/tsconfig.json
 
-          # Commit the changes and push to the repo
           git commit -m "Add synthesized Kubernetes Deployment YAML"
           git push
         env:
