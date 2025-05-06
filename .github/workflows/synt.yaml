@@ -22,15 +22,12 @@ jobs:
 
       - name: Set up CDK8s environment, compile, and synth
         run: |
-          # Change to the directory where CDK8s code is located
           cd cdk8s-go-web
-
-          # Initialize npm and install dependencies
           npm init -y
           npm install cdk8s constructs typescript cdk8s-plus-25
           npm install -g cdk8s-cli
 
-          # Create TypeScript configuration file (tsconfig.json) inside cdk8s-go-web
+          # Create TypeScript configuration file
           cat <<EOF > tsconfig.json
           {
             "compilerOptions": {
@@ -52,13 +49,14 @@ jobs:
             constructor(scope: Construct, id: string) {
               super(scope, id);
 
-              // Create a Deployment resource
+              // Create a deployment with a label
               new k8s.Deployment(this, 'web-deployment', {
                 metadata: { name: 'web' },
                 containers: [
                   {
                     image: 'nginx',  // The container image for the Deployment
                     name: 'nginx-container',
+                    ports: [{ containerPort: 80 }]
                   }
                 ]
               });
@@ -82,11 +80,11 @@ jobs:
           # Synthesize the Kubernetes YAML files directly inside the cdk8s-go-web directory
           cdk8s synth --output ./temp-synth-output
 
+          # Rename the generated YAML file to deployment.yaml
+          mv ./temp-synth-output/my-chart.k8s.yaml ./temp-synth-output/deployment.yaml
+
           # List synthesized output files for verification
           ls -al ./temp-synth-output
-          
-          # Print the content of the generated my-chart.k8s.yaml for debugging
-          cat ./temp-synth-output/my-chart.k8s.yaml
 
       - name: Commit all files inside cdk8s-go-web directory
         run: |
@@ -97,20 +95,8 @@ jobs:
           # Add the modified files to git (main.ts, cdk8s.yaml, synthesized YAML, etc.)
           git add cdk8s-go-web/main.ts
           git add cdk8s-go-web/cdk8s.yaml
-          git add cdk8s-go-web/temp-synth-output/*.k8s.yaml
+          git add cdk8s-go-web/temp-synth-output/deployment.yaml
           git add cdk8s-go-web/tsconfig.json
-
-          # Handle untracked files (e.g., package-lock.json, main.js, package.json)
-          git add cdk8s-go-web/package-lock.json
-          git add cdk8s-go-web/package.json
-          git add cdk8s-go-web/main.js
-
-          # If there are deleted files (e.g., temp-synth-output/s.k), remove them from git
-          git rm cdk8s-go-web/temp-synth-output/s.k || echo "No files to remove"
-
-          # Update .gitignore to exclude node_modules and temp-synth-output
-          echo "cdk8s-go-web/node_modules/" >> .gitignore
-          echo "cdk8s-go-web/temp-synth-output/" >> .gitignore
 
           # Commit the changes and push to the repo
           git commit -m "Add synthesized Kubernetes YAML and update main.ts"
