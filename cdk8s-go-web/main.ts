@@ -8,7 +8,7 @@ class GoWebAppChart extends Chart {
 
     const appLabel = { app: 'go-web-app' };
 
-    // Deployment
+    // Create Deployment
     const deployment = new k8s.Deployment(this, 'go-web-app-deployment', {
       metadata: {
         name: 'go-web-app',
@@ -25,9 +25,7 @@ class GoWebAppChart extends Chart {
       ports: [{ containerPort: 8080 }],
     });
 
-    deployment.podMetadata.addLabels(appLabel);
-
-    // Service
+    // Create Service
     new k8s.Service(this, 'go-web-app-service', {
       metadata: {
         name: 'go-web-app',
