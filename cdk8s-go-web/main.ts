@@ -6,54 +6,44 @@ class MyChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    // Define the label selector for both Deployment and Service
     const appLabel = { app: 'go-web-app' };
 
-    // Create Deployment resource
+    // Create Deployment resource correctly
     new k8s.Deployment(this, 'go-web-app-deployment', {
       metadata: {
         name: 'go-web-app',
         labels: appLabel,
       },
-      spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: appLabel,
-        },
-        template: {
-          metadata: {
-            labels: appLabel,
+      replicas: 1,
+      selector: {
+        matchLabels: appLabel,
+      },
+      podSpec: {
+        containers: [
+          {
+            name: 'go-web-app',
+            image: 'rushibindu/go-web-app:{{ .Values.image.tag }}',
+            ports: [{ containerPort: 8080 }],
           },
-          spec: {
-            containers: [
-              {
-                name: 'go-web-app',
-                image: 'rushibindu/go-web-app:{{ .Values.image.tag }}',
-                ports: [{ containerPort: 8080 }],
-              },
-            ],
-          },
-        },
+        ],
       },
     });
 
-    // Create Service resource
+    // Create Service resource correctly
     new k8s.Service(this, 'go-web-app-service', {
       metadata: {
         name: 'go-web-app',
         labels: appLabel,
       },
-      spec: {
-        ports: [
-          {
-            port: 80,
-            targetPort: 8080,
-            protocol: k8s.Protocol.TCP,
-          },
-        ],
-        selector: appLabel, // Match the appLabel selector
-        type: k8s.ServiceType.LOAD_BALANCER,
-      },
+      ports: [
+        {
+          port: 80,
+          targetPort: 8080,
+          protocol: k8s.Protocol.TCP,
+        },
+      ],
+      selector: appLabel, // Correct label selector for the service
+      type: k8s.ServiceType.LOAD_BALANCER,
     });
   }
 }
