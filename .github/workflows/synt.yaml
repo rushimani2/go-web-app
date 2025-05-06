@@ -61,25 +61,18 @@ jobs:
                   name: "go-web-app",
                   labels: appLabel,
                 },
-                spec: {
-                  replicas: 1,
-                  selector: {
-                    matchLabels: appLabel,
-                  },
-                  template: {
-                    metadata: {
-                      labels: appLabel,
+                replicas: 1,
+                selector: {
+                  matchLabels: appLabel,
+                },
+                podSpec: {
+                  containers: [
+                    {
+                      name: "go-web-app",
+                      image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
+                      ports: [{ containerPort: 8080 }],
                     },
-                    spec: {
-                      containers: [
-                        {
-                          name: "go-web-app",
-                          image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
-                          ports: [{ containerPort: 8080 }],
-                        },
-                      ],
-                    },
-                  },
+                  ],
                 },
               });
 
@@ -89,17 +82,15 @@ jobs:
                   name: "go-web-app",
                   labels: appLabel,
                 },
-                spec: {
-                  ports: [
-                    {
-                      port: 80,
-                      targetPort: 8080,
-                      protocol: k8s.Protocol.TCP,
-                    },
-                  ],
-                  selector: appLabel,  // Correct label selector for the service
-                  type: k8s.ServiceType.LOAD_BALANCER,
-                },
+                ports: [
+                  {
+                    port: 80,
+                    targetPort: 8080,
+                    protocol: k8s.Protocol.TCP,
+                  },
+                ],
+                selector: appLabel,  // Correct label selector for the service
+                type: k8s.ServiceType.LOAD_BALANCER,
               });
             }
           }
