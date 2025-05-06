@@ -22,7 +22,7 @@ jobs:
 
       - name: Set up CDK8s environment, compile, and synth
         run: |
-          cd go-web-app/cdk8s-go-web
+          cd cdk8s-go-web
 
           # Initialize Node.js project
           npm init -y
