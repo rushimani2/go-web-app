@@ -3,7 +3,7 @@ name: CDK8s Synth to Helm (TypeScript)
 on:
   push:
     paths:
-      - 'go-web-app/cdk8s-go-web/**'
+      - '**'
     branches:
       - main
 
