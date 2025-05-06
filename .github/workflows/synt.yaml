@@ -82,7 +82,7 @@ jobs:
 
       - name: Commit all files inside cdk8s-go-web directory
         run: |
-          # Set up git configuration and commit the changes
+          # Set up git configuration
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
@@ -92,11 +92,19 @@ jobs:
           git add cdk8s-go-web/temp-synth-output/*.k8s.yaml
           git add cdk8s-go-web/tsconfig.json
 
+          # Handle untracked files (e.g., package-lock.json, main.js, package.json)
+          git add cdk8s-go-web/package-lock.json
+          git add cdk8s-go-web/package.json
+          git add cdk8s-go-web/main.js
+
+          # If there are deleted files (e.g., temp-synth-output/s.k), remove them from git
+          git rm cdk8s-go-web/temp-synth-output/s.k || echo "No files to remove"
+
           # Update .gitignore to exclude node_modules and temp-synth-output
           echo "cdk8s-go-web/node_modules/" >> .gitignore
           echo "cdk8s-go-web/temp-synth-output/" >> .gitignore
 
-          # Commit and push changes
+          # Commit the changes and push to the repo
           git commit -m "Add synthesized Kubernetes YAML and update main.ts"
           git push
         env:
