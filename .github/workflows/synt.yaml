@@ -52,10 +52,16 @@ jobs:
             constructor(scope: Construct, id: string) {
               super(scope, id);
 
-              // Create a deployment with a label
+              // Create a Deployment resource
               new k8s.Deployment(this, 'web-deployment', {
                 metadata: { name: 'web' },
-                containers: [{ image: 'nginx' }],
+                containers: [
+                  {
+                    image: 'nginx',  // The container image for the Deployment
+                    name: 'nginx-container',
+                    ports: [{ containerPort: 80 }]
+                  }
+                ]
               });
             }
           }
@@ -79,6 +85,9 @@ jobs:
 
           # List synthesized output files for verification
           ls -al ./temp-synth-output
+          
+          # Print the content of the generated my-chart.k8s.yaml for debugging
+          cat ./temp-synth-output/my-chart.k8s.yaml
 
       - name: Commit all files inside cdk8s-go-web directory
         run: |
