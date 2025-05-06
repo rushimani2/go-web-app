@@ -51,7 +51,7 @@ jobs:
 
               // Create Deployment
               const deployment = new k8s.Deployment(this, 'web-deployment', {
-                metadata: { name: 'web' },
+                metadata: { },
                 containers: [
                   {
                     image: 'nginx',
@@ -62,7 +62,7 @@ jobs:
 
               // Create Service
               new k8s.Service(this, 'web-service', {
-                metadata: { name: 'web' },
+                metadata: { },
               });
             }
           }
