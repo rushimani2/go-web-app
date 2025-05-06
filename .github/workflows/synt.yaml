@@ -3,7 +3,7 @@ name: CDK8s Synth to Helm (TypeScript, No Local Setup)
 on:
   push:
     paths:
-      - '**'
+      - 'go-web-app/cdk8s-go-web/**'
     branches:
       - main
 
@@ -22,18 +22,18 @@ jobs:
 
       - name: Set up CDK8s environment, compile, and synth
         run: |
-          cd cdk8s-go-web
+          cd go-web-app/cdk8s-go-web
 
           # Initialize Node.js project
           npm init -y
 
           # Install CDK8s dependencies
-          npm install cdk8s constructs typescript
+          npm install cdk8s constructs typescript cdk8s-plus-25
 
-          # Install CDK8s CLI
+          # Install CDK8s CLI globally
           npm install -g cdk8s-cli
 
-          # Create TypeScript config
+          # Create TypeScript config (recursive include)
           cat <<EOF > tsconfig.json
           {
             "compilerOptions": {
@@ -42,7 +42,7 @@ jobs:
               "outDir": "dist",
               "strict": true
             },
-            "include": ["*.ts"]
+            "include": ["**/*.ts"]
           }
           EOF
 
