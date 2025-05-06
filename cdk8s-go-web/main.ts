@@ -15,31 +15,35 @@ class MyChart extends Chart {
     // Create Service
     new k8s.Service(this, 'web-service', {
       metadata: { name: 'web-service' },
-      selector: { app: 'web' }, // Match Deployment selector
-      ports: [{ port: 80 }], // Expose port 80
+      spec: {
+        selector: { app: 'web' }, // Correcting the selector to use app=web
+        ports: [{ port: 80 }],
+      },
     });
 
     // Create Ingress
     new k8s.Ingress(this, 'web-ingress', {
       metadata: { name: 'web-ingress' },
-      rules: [
-        {
-          host: 'web.local', // Change this according to your requirements
-          http: {
-            paths: [
-              {
-                path: '/',
-                backend: {
-                  service: {
-                    name: 'web-service',
-                    port: 80, // Correcting the port definition
+      spec: {
+        rules: [
+          {
+            host: 'web.local',
+            http: {
+              paths: [
+                {
+                  path: '/',
+                  backend: {
+                    service: {
+                      name: 'web-service',
+                      port: 80,
+                    },
                   },
                 },
-              },
-            ],
+              ],
+            },
           },
-        },
-      ],
+        ],
+      },
     });
   }
 }
