@@ -56,7 +56,6 @@ jobs:
                   {
                     image: 'nginx',
                     name: 'nginx-container',
-                    ports: [{ containerPort: 80 }]
                   }
                 ]
               });
@@ -64,8 +63,6 @@ jobs:
               // Create Service
               new k8s.Service(this, 'web-service', {
                 metadata: { name: 'web' },
-                ports: [{ port: 80, targetPort: 80 }],
-                selector: deployment.select
               });
             }
           }
