@@ -72,20 +72,36 @@ jobs:
           mkdir -p cdk8s-go-web/temp-synth-output
           # Debug: List files in the temp-synth-output directory
           ls -al cdk8s-go-web/temp-synth-output
+
       - name: Copy synthesized YAML to Helm chart templates
         run: |
           mkdir -p helm/go-web-app-chart/templates/generated
           cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+
       - name: List files in Helm chart templates directory
         run: |
           echo "Listing files in helm/go-web-app-chart/templates/generated/"
           ls -al helm/go-web-app-chart/templates/generated/
+
       - name: Commit synthesized files to the repository
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add helm/go-web-app-chart/templates/generated/*.k8s.yaml
-          git commit -m "Add synthesized Kubernetes YAML files"
+          
+          # Add the necessary files
+          git add cdk8s-go-web/main.ts
+          git add cdk8s-go-web/cdk8s.yaml
+          git add cdk8s-go-web/temp-synth-output/*.k8s.yaml
+          git add cdk8s-go-web/tsconfig.json
+          
+          # Ignore unnecessary files
+          echo "cdk8s-go-web/node_modules/" >> .gitignore
+          echo "cdk8s-go-web/dist/" >> .gitignore
+          
+          # Commit the changes
+          git commit -m "Add synthesized Kubernetes YAML files and update main.ts"
+          
+          # Push the changes to the repository
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
