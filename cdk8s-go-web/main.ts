@@ -7,7 +7,7 @@ class MyChart extends Chart {
     super(scope, id);
 
     // Create a Deployment
-    new k8s.Deployment(this, 'web-deployment', {
+    const deployment = new k8s.Deployment(this, 'web-deployment', {
       metadata: { name: 'web' },
       containers: [{ image: 'nginx' }],
     });
@@ -16,8 +16,8 @@ class MyChart extends Chart {
     new k8s.Service(this, 'web-service', {
       metadata: { name: 'web-service' },
       spec: {
-        ports: [{ port: 80 }],
-        selector: { app: 'web' }, // match the Deployment
+        selector: { app: 'web' }, // Match Deployment selector
+        ports: [{ port: 80 }], // Expose port 80
       },
     });
 
