@@ -1,4 +1,4 @@
-name: CDK8s Synth to Helm (TypeScript)
+name: CDK8s Synth to Helm (TypeScript, No Local Setup)
 
 on:
   push:
@@ -20,15 +20,42 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install CDK8s CLI and dependencies
+      - name: Set up CDK8s environment, compile, and synth
         run: |
-          npm install -g cdk8s-cli
           cd go-web-app/cdk8s-go-web
-          npm install
 
-      - name: Synthesize Kubernetes manifests
-        run: |
-          cd go-web-app/cdk8s-go-web
+          # Initialize Node.js project
+          npm init -y
+
+          # Install CDK8s dependencies
+          npm install cdk8s constructs typescript
+
+          # Install CDK8s CLI
+          npm install -g cdk8s-cli
+
+          # Create TypeScript config
+          cat <<EOF > tsconfig.json
+          {
+            "compilerOptions": {
+              "target": "ES2020",
+              "module": "CommonJS",
+              "outDir": "dist",
+              "strict": true
+            },
+            "include": ["*.ts"]
+          }
+          EOF
+
+          # Compile TypeScript to JavaScript
+          npx tsc
+
+          # Create cdk8s.yaml
+          cat <<EOF > cdk8s.yaml
+          app: node dist/main.js
+          language: typescript
+          EOF
+
+          # Synthesize Kubernetes manifests
           cdk8s synth --output temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
