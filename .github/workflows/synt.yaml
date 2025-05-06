@@ -22,10 +22,15 @@ jobs:
 
       - name: Set up CDK8s environment, compile, and synth
         run: |
+          # Change to the directory where CDK8s code is located
           cd cdk8s-go-web
+
+          # Initialize npm and install dependencies
           npm init -y
           npm install cdk8s constructs typescript cdk8s-plus-25
           npm install -g cdk8s-cli
+
+          # Create TypeScript configuration file (tsconfig.json)
           cat <<EOF > tsconfig.json
           {
             "compilerOptions": {
@@ -37,41 +42,59 @@ jobs:
             "include": ["**/*.ts"]
           }
           EOF
+
+          # Create main.ts file for CDK8s definition
           cat <<EOF > main.ts
           import { App, Chart } from 'cdk8s';
           import { Construct } from 'constructs';
           import * as k8s from 'cdk8s-plus-25';
+
           class MyChart extends Chart {
             constructor(scope: Construct, id: string) {
               super(scope, id);
+
+              // Create a deployment with a label
               new k8s.Deployment(this, 'web-deployment', {
                 metadata: { name: 'web' },
                 containers: [{ image: 'nginx' }]
               });
+
+              // Create a Kubernetes service with a label selector
               new k8s.Service(this, 'web-service', {
                 metadata: { name: 'web' },
                 ports: [{ port: 80, targetPort: 80 }],
-                selector: { app: 'web' }
+                selector: { app: 'web' }  # Label to match the deployment pods
               });
             }
           }
+
           const app = new App();
           new MyChart(app, 'my-chart');
           app.synth();
           EOF
+
+          # Compile TypeScript to JavaScript
           npx tsc
+
+          # Create cdk8s.yaml for CDK8s configuration
           cat <<EOF > cdk8s.yaml
           app: node dist/main.js
           language: typescript
           EOF
-          cdk8s synth --output temp-synth-output
-          mkdir -p cdk8s-go-web/temp-synth-output
-          ls -al cdk8s-go-web/temp-synth-output
+
+          # Synthesize the Kubernetes YAML files
+          cdk8s synth --output dist/temp-synth-output
+
+          # List synthesized output files for verification
+          ls -al dist/temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
         run: |
+          # Create necessary directories if they don't exist
           mkdir -p helm/go-web-app-chart/templates/generated
-          cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+          
+          # Copy the generated Kubernetes YAML files into Helm chart templates
+          cp dist/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
 
       - name: List files in Helm chart templates directory
         run: |
@@ -80,14 +103,21 @@ jobs:
 
       - name: Commit synthesized files to the repository
         run: |
+          # Set up git configuration and commit the changes
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
+
+          # Add the modified files to git
           git add cdk8s-go-web/main.ts
           git add cdk8s-go-web/cdk8s.yaml
           git add cdk8s-go-web/temp-synth-output/*.k8s.yaml
           git add cdk8s-go-web/tsconfig.json
+
+          # Update .gitignore to exclude node_modules and dist
           echo "cdk8s-go-web/node_modules/" >> .gitignore
           echo "cdk8s-go-web/dist/" >> .gitignore
+
+          # Commit and push changes
           git commit -m "Add synthesized Kubernetes YAML files and update main.ts"
           git push
         env:
