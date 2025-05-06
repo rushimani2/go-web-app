@@ -71,15 +71,15 @@ jobs:
 
           # Create cdk8s.yaml for CDK8s configuration
           cat <<EOF > cdk8s.yaml
-          app: node out/main.js
+          app: node main.js
           language: typescript
           EOF
 
           # Synthesize the Kubernetes YAML files
-          cdk8s synth --output out/temp-synth-output
+          cdk8s synth --output temp-synth-output
 
           # List synthesized output files for verification
-          ls -al out/temp-synth-output
+          ls -al temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
         run: |
