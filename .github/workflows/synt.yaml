@@ -90,3 +90,8 @@ jobs:
         run: |
           mkdir -p helm/go-web-app-chart/templates/generated
           cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+
+      - name: List files in Helm chart templates directory
+        run: |
+          echo "Listing files in helm/go-web-app-chart/templates/generated/"
+          ls -al helm/go-web-app-chart/templates/generated/
