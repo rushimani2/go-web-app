@@ -27,8 +27,8 @@ jobs:
           npm install cdk8s constructs typescript cdk8s-plus-25
           npm install -g cdk8s-cli
 
-          cat <<EOF > tsconfig.json
-          {
+          # Create tsconfig.json
+          echo '{
             "compilerOptions": {
               "target": "ES2020",
               "module": "CommonJS",
@@ -36,79 +36,76 @@ jobs:
               "strict": true
             },
             "include": ["**/*.ts"]
-          }
-          EOF
+          }' > tsconfig.json
 
-          cat <<EOF > main.ts
-          import { App, Chart } from 'cdk8s';
-          import { Construct } from 'constructs';
-          import * as k8s from 'cdk8s-plus-25';
+          # Create main.ts
+          echo 'import { App, Chart } from "cdk8s";
+          import { Construct } from "constructs";
+          import * as k8s from "cdk8s-plus-25";
 
           class MyChart extends Chart {
             constructor(scope: Construct, id: string) {
               super(scope, id);
 
-              const label = { app: 'web' };
+              const label = { app: "web" };
 
-              new k8s.Deployment(this, 'web-deployment', {
-                metadata: { name: 'web' },
+              new k8s.Deployment(this, "web-deployment", {
+                metadata: { name: "web" },
                 spec: {
                   selector: { matchLabels: label },
                   replicas: 1,
                   template: {
                     metadata: { labels: label },
                     spec: {
-                      containers: [{ name: 'nginx', image: 'nginx' }],
-                    },
-                  },
-                },
+                      containers: [{ name: "nginx", image: "nginx" }]
+                    }
+                  }
+                }
               });
 
-              new k8s.Service(this, 'web-service', {
-                metadata: { name: 'web-service' },
+              new k8s.Service(this, "web-service", {
+                metadata: { name: "web-service" },
                 spec: {
                   type: k8s.ServiceType.CLUSTER_IP,
                   ports: [{ port: 80, targetPort: 80 }],
-                  selector: label,
-                },
+                  selector: label
+                }
               });
 
-              new k8s.Ingress(this, 'web-ingress', {
-                metadata: { name: 'web-ingress' },
+              new k8s.Ingress(this, "web-ingress", {
+                metadata: { name: "web-ingress" },
                 spec: {
                   rules: [
                     {
-                      host: 'web.local',
+                      host: "web.local",
                       http: {
                         paths: [
                           {
-                            path: '/',
-                            pathType: 'Prefix',
+                            path: "/",
+                            pathType: "Prefix",
                             backend: {
                               service: {
-                                name: 'web-service',
-                                port: { number: 80 },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
+                                name: "web-service",
+                                port: { number: 80 }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
               });
             }
           }
 
           const app = new App();
-          new MyChart(app, 'my-chart');
-          app.synth();
-          EOF
+          new MyChart(app, "my-chart");
+          app.synth();' > main.ts
 
-          cat <<EOF > cdk8s.yaml
-          app: node dist/main.js
-          language: typescript
-          EOF
+          # Create cdk8s.yaml
+          echo 'app: node dist/main.js
+          language: typescript' > cdk8s.yaml
 
           npx tsc
           cdk8s synth --output temp-synth-output
