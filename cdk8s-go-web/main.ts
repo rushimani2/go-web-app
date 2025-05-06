@@ -6,10 +6,15 @@ class MyChart extends Chart {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    // Create a deployment with a label
+    // Create a Deployment resource
     new k8s.Deployment(this, 'web-deployment', {
       metadata: { name: 'web' },
-      containers: [{ image: 'nginx' }],
+      containers: [
+        {
+          image: 'nginx',  // The container image for the Deployment
+          name: 'nginx-container',
+        }
+      ]
     });
   }
 }

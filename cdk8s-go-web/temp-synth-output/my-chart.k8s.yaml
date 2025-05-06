@@ -23,7 +23,7 @@ spec:
       containers:
         - image: nginx
           imagePullPolicy: Always
-          name: main
+          name: nginx-container
           resources:
             limits:
               cpu: 1500m
