@@ -1,0 +1,2 @@
+app: node dist/main.js
+language: typescript
