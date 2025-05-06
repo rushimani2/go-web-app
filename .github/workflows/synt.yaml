@@ -39,7 +39,7 @@ jobs:
           }
           EOF
 
-          # Create the corrected main.ts file with only the deployment
+          # Create main.ts with Deployment and Service configuration
           cat <<EOF > main.ts
           import { App, Chart } from 'cdk8s';
           import { Construct } from 'constructs';
@@ -49,15 +49,23 @@ jobs:
             constructor(scope: Construct, id: string) {
               super(scope, id);
 
-              // Create a deployment with a label
-              new k8s.Deployment(this, 'web-deployment', {
+              // Create Deployment
+              const deployment = new k8s.Deployment(this, 'web-deployment', {
                 metadata: { name: 'web' },
                 containers: [
                   {
-                    image: 'nginx',  // The container image for the Deployment
+                    image: 'nginx',
                     name: 'nginx-container',
+                    ports: [{ containerPort: 80 }]
                   }
                 ]
+              });
+
+              // Create Service
+              new k8s.Service(this, 'web-service', {
+                metadata: { name: 'web' },
+                ports: [{ port: 80, targetPort: 80 }],
+                selector: deployment.select
               });
             }
           }
@@ -67,23 +75,27 @@ jobs:
           app.synth();
           EOF
 
-          # Compile TypeScript to JavaScript (this will generate main.js in the current directory)
+          # Compile TypeScript to JavaScript (this will generate main.js)
           npx tsc
 
-          # Create cdk8s.yaml for CDK8s configuration inside the same directory
+          # Create cdk8s.yaml for CDK8s configuration
           cat <<EOF > cdk8s.yaml
           app: node main.js
           language: typescript
           EOF
 
-          # Synthesize the Kubernetes YAML files directly inside the cdk8s-go-web directory
+          # Synthesize the Kubernetes YAML files into the specified directory
           cdk8s synth --output ./temp-synth-output
 
-          # Rename the generated YAML file to deployment.yaml
-          mv ./temp-synth-output/my-chart.k8s.yaml ./temp-synth-output/deployment.yaml
-
-          # List synthesized output files for verification
+          # List synthesized files for verification
           ls -al ./temp-synth-output
+
+          # Split the generated YAML file into two parts: one for deployment and one for service
+          # Extract Deployment and save to deployment.yaml
+          grep -E '^(apiVersion|kind: Deployment|metadata:|spec:)' ./temp-synth-output/my-chart.k8s.yaml > ./temp-synth-output/deployment.yaml
+
+          # Extract Service and save to service.yaml
+          grep -E '^(apiVersion|kind: Service|metadata:|spec:)' ./temp-synth-output/my-chart.k8s.yaml > ./temp-synth-output/service.yaml
 
       - name: Commit all files inside cdk8s-go-web directory
         run: |
@@ -95,10 +107,11 @@ jobs:
           git add cdk8s-go-web/main.ts
           git add cdk8s-go-web/cdk8s.yaml
           git add cdk8s-go-web/temp-synth-output/deployment.yaml
+          git add cdk8s-go-web/temp-synth-output/service.yaml
           git add cdk8s-go-web/tsconfig.json
 
           # Commit the changes and push to the repo
-          git commit -m "Add synthesized Kubernetes YAML and update main.ts"
+          git commit -m "Add synthesized Kubernetes Deployment and Service YAML files"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
