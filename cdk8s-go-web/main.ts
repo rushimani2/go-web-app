@@ -17,13 +17,17 @@ class MyChart extends Chart {
       port: 80
     });
 
+    // Add label selector for pods
     deployment.select.addMatchLabel('app', 'web');
+
+    // Add the label to the pod template metadata so it matches the selector
+    deployment.podMetadata.addLabel('app', 'web');
 
     new k8s.Service(this, 'web-service', {
       metadata: { name: 'web' },
       type: k8s.ServiceType.CLUSTER_IP,
       ports: [{ port: 80, targetPort: 80 }],
-      selector: deployment.select
+      selector: deployment.select.toJson()  // Corrected: use .toJson()
     });
   }
 }
