@@ -46,7 +46,7 @@ jobs:
           }
           EOF
 
-          # Ensure main.ts file is present
+          # Create main.ts file with resources (e.g., a Deployment)
           cat <<EOF > main.ts
           import { App, Chart } from 'cdk8s';
           import { Construct } from 'constructs';
@@ -71,7 +71,7 @@ jobs:
           # Compile TypeScript to JavaScript
           npx tsc
 
-          # Create cdk8s.yaml
+          # Create cdk8s.yaml to point to the compiled file
           cat <<EOF > cdk8s.yaml
           app: node dist/main.js
           language: typescript
