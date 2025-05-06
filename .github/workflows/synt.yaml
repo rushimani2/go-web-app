@@ -95,3 +95,13 @@ jobs:
         run: |
           echo "Listing files in helm/go-web-app-chart/templates/generated/"
           ls -al helm/go-web-app-chart/templates/generated/
+
+      - name: Commit synthesized files to the repository
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add helm/go-web-app-chart/templates/generated/*.k8s.yaml
+          git commit -m "Add synthesized Kubernetes YAML files"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
