@@ -3,7 +3,7 @@ name: CDK8s Synth to Helm (TypeScript, No Local Setup)
 on:
   push:
     paths:
-      - '**'
+      - 'go-web-app/cdk8s-go-web/**'
     branches:
       - main
 
@@ -22,7 +22,7 @@ jobs:
 
       - name: Set up CDK8s environment, compile, and synth
         run: |
-          cd cdk8s-go-web
+          cd go-web-app/cdk8s-go-web
 
           # Initialize Node.js project
           npm init -y
@@ -46,6 +46,28 @@ jobs:
           }
           EOF
 
+          # Ensure main.ts file is present
+          cat <<EOF > main.ts
+          import { App, Chart } from 'cdk8s';
+          import { Construct } from 'constructs';
+          import * as k8s from 'cdk8s-plus-25';
+
+          class MyChart extends Chart {
+            constructor(scope: Construct, id: string) {
+              super(scope, id);
+
+              new k8s.Deployment(this, 'web-deployment', {
+                metadata: { name: 'web' },
+                containers: [{ image: 'nginx' }]
+              });
+            }
+          }
+
+          const app = new App();
+          new MyChart(app, 'my-chart');
+          app.synth();
+          EOF
+
           # Compile TypeScript to JavaScript
           npx tsc
 
@@ -57,6 +79,9 @@ jobs:
 
           # Synthesize Kubernetes manifests
           cdk8s synth --output temp-synth-output
+
+          # Debug: List files in the temp-synth-output directory
+          ls -al go-web-app/cdk8s-go-web/temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
         run: |
