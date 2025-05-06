@@ -43,7 +43,7 @@ jobs:
           }
           EOF
 
-          # Create main.ts file for CDK8s definition
+          # Create the corrected main.ts file for CDK8s definition
           cat <<EOF > main.ts
           import { App, Chart } from 'cdk8s';
           import { Construct } from 'constructs';
@@ -56,14 +56,14 @@ jobs:
               // Create a deployment with a label
               new k8s.Deployment(this, 'web-deployment', {
                 metadata: { name: 'web' },
-                containers: [{ image: 'nginx' }]
+                containers: [{ image: 'nginx' }],
               });
 
               // Create a Kubernetes service with a label selector
               new k8s.Service(this, 'web-service', {
                 metadata: { name: 'web' },
                 ports: [{ port: 80, targetPort: 80 }],
-                selector: { app: 'web' }  # Label to match the deployment pods
+                selector: { app: 'web' }, // Label to match the deployment pods
               });
             }
           }
