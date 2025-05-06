@@ -27,8 +27,8 @@ jobs:
           # Initialize Go module and install dependencies
           go mod init my-cdk8s-app
           go get github.com/cdk8s-team/cdk8s-go/cdk8s
-          go get github.com/cdk8s-team/cdk8s-go/cdk8s-plus-25
-          go get github.com/constructs/constructs-go/constructs
+          go get github.com/cdk8s-team/cdk8s-go/cdk8s-plus
+          go get github.com/aws/constructs-go/constructs
 
           # Create main.go if it doesn't exist
           cat <<EOF > main.go
@@ -36,8 +36,8 @@ jobs:
 
           import (
               "github.com/cdk8s-team/cdk8s-go/cdk8s"
-              "github.com/cdk8s-team/cdk8s-go/cdk8s-plus-25/k8s"
-              "github.com/constructs/constructs-go/constructs"
+              "github.com/cdk8s-team/cdk8s-go/cdk8s-plus/k8s"
+              "github.com/aws/constructs-go/constructs"
           )
 
           type MyChart struct {
