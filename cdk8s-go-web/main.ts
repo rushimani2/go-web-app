@@ -18,10 +18,11 @@ class GoWebAppChart extends Chart {
       selector: { matchLabels: appLabel },
     });
 
+    // Add container to the Deployment
     deployment.addContainer({
       name: 'go-web-app',
       image: 'rushibindu/go-web-app:{{ .Values.image.tag }}',
-      port: 8080,
+      ports: [{ containerPort: 8080 }],
     });
 
     deployment.podMetadata.addLabels(appLabel);
@@ -32,7 +33,6 @@ class GoWebAppChart extends Chart {
         name: 'go-web-app',
         labels: appLabel,
       },
-      type: k8s.ServiceType.LOAD_BALANCER,
       ports: [
         {
           port: 80,
@@ -41,6 +41,7 @@ class GoWebAppChart extends Chart {
         },
       ],
       selector: appLabel,
+      type: k8s.ServiceType.LOAD_BALANCER,
     });
   }
 }
