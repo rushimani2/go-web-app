@@ -48,7 +48,7 @@ jobs:
           echo 'import { App, Chart } from "cdk8s";
           import { Construct } from "constructs";
           import * as k8s from "cdk8s-plus-25";
-          
+
           class MyChart extends Chart {
             constructor(scope: Construct, id: string) {
               super(scope, id);
@@ -63,7 +63,9 @@ jobs:
                 },
                 spec: {
                   replicas: 1,
-                  selector: k8s.LabelSelector.all(appLabel),  // Correct label selector
+                  selector: {
+                    matchLabels: appLabel,
+                  },
                   template: {
                     metadata: {
                       labels: appLabel,
@@ -95,13 +97,13 @@ jobs:
                       protocol: k8s.Protocol.TCP,
                     },
                   ],
-                  selector: appLabel,  // Correct service selector
+                  selector: appLabel,  // Correct label selector for the service
                   type: k8s.ServiceType.LOAD_BALANCER,
                 },
               });
             }
           }
-          
+
           const app = new App();
           new MyChart(app, "go-web-app-chart");
           app.synth();' > main.ts
