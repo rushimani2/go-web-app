@@ -36,7 +36,7 @@ jobs:
             "compilerOptions": {
               "target": "ES2020",
               "module": "CommonJS",
-              "outDir": "dist",
+              "outDir": "out",  # Change the output directory to "out" instead of "dist"
               "strict": true
             },
             "include": ["**/*.ts"]
@@ -66,20 +66,20 @@ jobs:
           app.synth();
           EOF
 
-          # Compile TypeScript to JavaScript
+          # Compile TypeScript to JavaScript (output will be in "out" directory)
           npx tsc
 
           # Create cdk8s.yaml for CDK8s configuration
           cat <<EOF > cdk8s.yaml
-          app: node dist/main.js
+          app: node out/main.js  # Change to the "out" directory where the compiled main.js will be
           language: typescript
           EOF
 
           # Synthesize the Kubernetes YAML files
-          cdk8s synth --output dist/temp-synth-output
+          cdk8s synth --output out/temp-synth-output
 
           # List synthesized output files for verification
-          ls -al dist/temp-synth-output
+          ls -al out/temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
         run: |
@@ -87,7 +87,7 @@ jobs:
           mkdir -p helm/go-web-app-chart/templates/generated
           
           # Copy the generated Kubernetes YAML files into Helm chart templates
-          cp dist/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+          cp out/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
 
       - name: List files in Helm chart templates directory
         run: |
@@ -103,12 +103,12 @@ jobs:
           # Add the modified files to git
           git add cdk8s-go-web/main.ts
           git add cdk8s-go-web/cdk8s.yaml
-          git add cdk8s-go-web/temp-synth-output/*.k8s.yaml
+          git add cdk8s-go-web/out/temp-synth-output/*.k8s.yaml
           git add cdk8s-go-web/tsconfig.json
 
-          # Update .gitignore to exclude node_modules and dist
+          # Update .gitignore to exclude node_modules and out
           echo "cdk8s-go-web/node_modules/" >> .gitignore
-          echo "cdk8s-go-web/dist/" >> .gitignore
+          echo "cdk8s-go-web/out/" >> .gitignore
 
           # Commit and push changes
           git commit -m "Add synthesized Kubernetes Deployment YAML and update main.ts"
