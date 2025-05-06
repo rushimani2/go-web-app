@@ -81,12 +81,12 @@ jobs:
           cdk8s synth --output temp-synth-output
 
           # Ensure the output directory exists before attempting to list files
-          mkdir -p go-web-app/cdk8s-go-web/temp-synth-output
+          mkdir -p cdk8s-go-web/temp-synth-output
 
           # Debug: List files in the temp-synth-output directory
-          ls -al go-web-app/cdk8s-go-web/temp-synth-output
+          ls -al cdk8s-go-web/temp-synth-output
 
       - name: Copy synthesized YAML to Helm chart templates
         run: |
           mkdir -p helm/go-web-app-chart/templates/generated
-          cp go-web-app/cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
+          cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
