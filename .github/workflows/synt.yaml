@@ -56,20 +56,29 @@ jobs:
               const appLabel = { app: "go-web-app" };
 
               // Create Deployment
-              const deployment = new k8s.Deployment(this, "go-web-app-deployment", {
+              new k8s.Deployment(this, "go-web-app-deployment", {
                 metadata: {
                   name: "go-web-app",
                   labels: appLabel,
                 },
-                replicas: 1,
-                selector: { matchLabels: appLabel },
-              });
-
-              // Add container to the Deployment
-              deployment.addContainer({
-                name: "go-web-app",
-                image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
-                ports: [{ containerPort: 8080 }],
+                spec: {
+                  replicas: 1,
+                  selector: k8s.LabelSelector.all(appLabel),  // Correct label selector
+                  template: {
+                    metadata: {
+                      labels: appLabel,
+                    },
+                    spec: {
+                      containers: [
+                        {
+                          name: "go-web-app",
+                          image: "rushibindu/go-web-app:{{ .Values.image.tag }}",
+                          ports: [{ containerPort: 8080 }],
+                        },
+                      ],
+                    },
+                  },
+                },
               });
 
               // Create Service
@@ -78,15 +87,17 @@ jobs:
                   name: "go-web-app",
                   labels: appLabel,
                 },
-                ports: [
-                  {
-                    port: 80,
-                    targetPort: 8080,
-                    protocol: k8s.Protocol.TCP,
-                  },
-                ],
-                selector: appLabel,
-                type: k8s.ServiceType.LOAD_BALANCER,
+                spec: {
+                  ports: [
+                    {
+                      port: 80,
+                      targetPort: 8080,
+                      protocol: k8s.Protocol.TCP,
+                    },
+                  ],
+                  selector: appLabel,  // Correct service selector
+                  type: k8s.ServiceType.LOAD_BALANCER,
+                },
               });
             }
           }
