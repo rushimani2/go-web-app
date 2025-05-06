@@ -30,7 +30,7 @@ jobs:
           npm install cdk8s constructs typescript cdk8s-plus-25
           npm install -g cdk8s-cli
 
-          # Create TypeScript configuration file (tsconfig.json)
+          # Create TypeScript configuration file (tsconfig.json) inside cdk8s-go-web
           cat <<EOF > tsconfig.json
           {
             "compilerOptions": {
@@ -68,38 +68,25 @@ jobs:
           # Compile TypeScript to JavaScript (this will generate main.js in the current directory)
           npx tsc
 
-          # Create cdk8s.yaml for CDK8s configuration
+          # Create cdk8s.yaml for CDK8s configuration inside the same directory
           cat <<EOF > cdk8s.yaml
           app: node main.js
           language: typescript
           EOF
 
-          # Synthesize the Kubernetes YAML files directly into the current directory
-          cdk8s synth --output temp-synth-output
+          # Synthesize the Kubernetes YAML files directly inside the cdk8s-go-web directory
+          cdk8s synth --output ./temp-synth-output
 
           # List synthesized output files for verification
-          ls -al temp-synth-output
+          ls -al ./temp-synth-output
 
-      - name: Copy synthesized YAML to Helm chart templates
-        run: |
-          # Create necessary directories if they don't exist
-          mkdir -p helm/go-web-app-chart/templates/generated
-          
-          # Copy the generated Kubernetes YAML files into Helm chart templates
-          cp cdk8s-go-web/temp-synth-output/*.k8s.yaml helm/go-web-app-chart/templates/generated/
-
-      - name: List files in Helm chart templates directory
-        run: |
-          echo "Listing files in helm/go-web-app-chart/templates/generated/"
-          ls -al helm/go-web-app-chart/templates/generated/
-
-      - name: Commit synthesized files to the repository
+      - name: Commit all files inside cdk8s-go-web directory
         run: |
           # Set up git configuration and commit the changes
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          # Add the modified files to git
+          # Add the modified files to git (main.ts, cdk8s.yaml, synthesized YAML, etc.)
           git add cdk8s-go-web/main.ts
           git add cdk8s-go-web/cdk8s.yaml
           git add cdk8s-go-web/temp-synth-output/*.k8s.yaml
@@ -110,7 +97,7 @@ jobs:
           echo "cdk8s-go-web/temp-synth-output/" >> .gitignore
 
           # Commit and push changes
-          git commit -m "Add synthesized Kubernetes Deployment YAML and update main.ts"
+          git commit -m "Add synthesized Kubernetes YAML and update main.ts"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
