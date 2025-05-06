@@ -65,35 +65,31 @@ jobs:
               // Create Service
               new k8s.Service(this, 'web-service', {
                 metadata: { name: 'web-service' },
-                spec: {
-                  selector: { app: 'web' },
-                  ports: [{ port: 80 }],
-                },
+                selector: { app: 'web' },
+                ports: [{ port: 80 }],
               });
 
               // Create Ingress
               new k8s.Ingress(this, 'web-ingress', {
                 metadata: { name: 'web-ingress' },
-                spec: {
-                  rules: [
-                    {
-                      host: 'web.local',
-                      http: {
-                        paths: [
-                          {
-                            path: '/',
-                            backend: {
-                              service: {
-                                name: 'web-service',
-                                port: { number: 80 },
-                              },
+                rules: [
+                  {
+                    host: 'web.local',
+                    http: {
+                      paths: [
+                        {
+                          path: '/',
+                          backend: {
+                            service: {
+                              name: 'web-service',
+                              port: 80,
                             },
                           },
-                        ],
-                      },
+                        },
+                      ],
                     },
-                  ],
-                },
+                  },
+                ],
               });
             }
           }
