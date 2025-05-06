@@ -46,7 +46,7 @@ jobs:
           }
           EOF
 
-          # Create main.ts file with resources (e.g., a Deployment)
+          # Create main.ts file with resources (Deployment, Service, Ingress)
           cat <<EOF > main.ts
           import { App, Chart } from 'cdk8s';
           import { Construct } from 'constructs';
@@ -56,9 +56,44 @@ jobs:
             constructor(scope: Construct, id: string) {
               super(scope, id);
 
+              // Create Deployment
               new k8s.Deployment(this, 'web-deployment', {
                 metadata: { name: 'web' },
-                containers: [{ image: 'nginx' }]
+                containers: [{ image: 'nginx' }],
+              });
+
+              // Create Service
+              new k8s.Service(this, 'web-service', {
+                metadata: { name: 'web-service' },
+                spec: {
+                  ports: [{ port: 80 }],
+                  selector: { app: 'web' },
+                },
+              });
+
+              // Create Ingress
+              new k8s.Ingress(this, 'web-ingress', {
+                metadata: { name: 'web-ingress' },
+                spec: {
+                  rules: [
+                    {
+                      host: 'web.local',
+                      http: {
+                        paths: [
+                          {
+                            path: '/',
+                            backend: {
+                              service: {
+                                name: 'web-service',
+                                port: { number: 80 },
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
               });
             }
           }
@@ -101,7 +136,7 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add helm/go-web-app-chart/templates/generated/*.k8s.yaml
-          git commit -m "Add synthesized Kubernetes YAML files"
+          git commit -m "Add synthesized Kubernetes YAML files for Deployment, Service, and Ingress"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
