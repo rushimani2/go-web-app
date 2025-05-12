@@ -5,7 +5,7 @@ on:
     paths:
       - '**'
     branches:
-      - main
+      - maine
 
 jobs:
   synth-and-copy:
