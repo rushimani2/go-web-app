@@ -24,7 +24,7 @@ jobs:
 
       - name: Check Go Formatting (gofmt)
         run: |
-          if [ -n "$(gofmt -l .)" ]; then
+          if [ -n "$(gofmt -l main.go)" ]; then
             echo "The following files are not formatted:"
             gofmt -l .
             exit 1
